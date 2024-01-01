@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using Job.Cron.Enums;
+using JobScheduler.Cron.Enums;
 
 namespace Job.Core.Tests.Cron;
 

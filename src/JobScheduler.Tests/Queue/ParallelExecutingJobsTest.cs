@@ -1,8 +1,8 @@
 using System.Diagnostics;
-using Job.Cron.Interfaces;
-using Job.Queue;
-using Job.Queue.Interfaces;
-using Job.Queue.Queues;
+using JobScheduler.Cron.Interfaces;
+using JobScheduler.Queue;
+using JobScheduler.Queue.Interfaces;
+using JobScheduler.Queue.Queues;
 
 namespace Job.Core.Tests.Queue;
 

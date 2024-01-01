@@ -1,8 +1,8 @@
-using FunctionalCsharp;
-using Job.Cron.Abstraction;
-using Job.Cron.Enums;
-using Job.Cron.Interfaces;
-using Job.Cron.Result;
+using Job.Core.Types;
+using JobScheduler.Cron.Abstraction;
+using JobScheduler.Cron.Enums;
+using JobScheduler.Cron.Interfaces;
+using JobScheduler.Cron.Result;
 
 namespace Job.Core.Tests.Cron;
 
@@ -15,7 +15,7 @@ public class CronJobRandomResult : BaseCronJob
 		timeWorkJob = time;
 	}
 
-	protected override async Task<Result<JobOk, JobFail>> ActionJob()
+	protected override async Task<JobResult<JobOk, JobFail>> ActionJob()
 	{
 		int val = Random.Shared.Next(1, 10);
 		await Task.Delay(timeWorkJob);
@@ -38,7 +38,7 @@ public class CronJobFailResult : BaseCronJob
 		timeWorkJob = time;
 	}
 
-	protected override async Task<Result<JobOk, JobFail>> ActionJob()
+	protected override async Task<JobResult<JobOk, JobFail>> ActionJob()
 	{
 		await Task.Delay(timeWorkJob);
 		return new JobFail(CronJobFailEnum.InternalException, "lol", null);
@@ -56,7 +56,7 @@ public class CronJobOkResult : BaseCronJob
 		timeWorkJob = time;
 	}
 
-	protected override async Task<Result<JobOk, JobFail>> ActionJob()
+	protected override async Task<JobResult<JobOk, JobFail>> ActionJob()
 	{
 		await Task.Delay(timeWorkJob);
 		return new JobOk();
@@ -74,7 +74,7 @@ public class CronJobFailExceptionResult : BaseCronJob
 		timeWorkJob = time;
 	}
 
-	protected override async Task<Result<JobOk, JobFail>> ActionJob()
+	protected override async Task<JobResult<JobOk, JobFail>> ActionJob()
 	{
 		await Task.Delay(timeWorkJob);
 		throw new Exception("some exp");

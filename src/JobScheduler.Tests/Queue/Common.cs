@@ -1,10 +1,10 @@
-using FunctionalCsharp;
-using Job.Cron.Enums;
-using Job.Queue;
-using Job.Queue.Abstraction;
-using Job.Queue.Enums;
-using Job.Queue.Interfaces;
-using Job.Queue.Result;
+using Job.Core.Types;
+using JobScheduler.Cron.Enums;
+using JobScheduler.Queue;
+using JobScheduler.Queue.Abstraction;
+using JobScheduler.Queue.Enums;
+using JobScheduler.Queue.Interfaces;
+using JobScheduler.Queue.Result;
 
 namespace Job.Core.Tests.Queue;
 
@@ -18,7 +18,7 @@ public class QueueRandomJob : BaseQueueJob
 		base.ActionJob = SomeLogic;
 	}
 	
-	private async Task<Result<JobOk, JobFail>> SomeLogic()
+	private async Task<JobResult<JobOk, JobFail>> SomeLogic()
 	{
 		int val = Random.Shared.Next(1, 10);
 		await Task.Delay(timeWorkJob);
@@ -42,7 +42,7 @@ public class QueueJobFailResult : BaseQueueJob
 		base.ActionJob = SomeLogic;
 	}
 	
-	private async Task<Result<JobOk, JobFail>> SomeLogic()
+	private async Task<JobResult<JobOk, JobFail>> SomeLogic()
 	{
 		await Task.Delay(timeWorkJob);
 		return new JobFail(Id, Name, QueueJobFailEnum.InternalException, "lol", null);
@@ -61,7 +61,7 @@ public class QueueJobOkResult : BaseQueueJob
 		base.ActionJob = SomeLogic;
 	}
 	
-	private async Task<Result<JobOk, JobFail>> SomeLogic()
+	private async Task<JobResult<JobOk, JobFail>> SomeLogic()
 	{
 		await Task.Delay(timeWorkJob);
 		return new JobOk(Id, Name);
@@ -80,7 +80,7 @@ public class QueueJobFailExceptionResult : BaseQueueJob
 		base.ActionJob = SomeLogic;
 	}
 	
-	private async Task<Result<JobOk, JobFail>> SomeLogic()
+	private async Task<JobResult<JobOk, JobFail>> SomeLogic()
 	{
 		await Task.Delay(timeWorkJob);
 		throw new Exception("some exp");
@@ -122,7 +122,7 @@ public class TestQueueReAddFailJobManager : BaseQueueJobManager
 		base.JobResultEvent += OnJobResultEvent;
 	}
 
-	private void OnJobResultEvent(IQueueJob job, Result<JobOk, JobFail> e)
+	private void OnJobResultEvent(IQueueJob job, JobResult<JobOk, JobFail> e)
 	{
 		if (e.IsFail && job.TotalRun < AttepmentAfterFail)
 		{

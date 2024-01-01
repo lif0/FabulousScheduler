@@ -1,5 +1,5 @@
-using Job.Queue;
-using Job.Queue.Queues;
+using JobScheduler.Queue;
+using JobScheduler.Queue.Queues;
 using Xunit.Abstractions;
 
 namespace Job.Core.Tests.Queue;
