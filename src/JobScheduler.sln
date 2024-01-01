@@ -1,12 +1,14 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Job.Core", "Job.Core\Job.Core.csproj", "{0E000792-BB5A-4AEA-9246-2CA5970F6C5B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FabulousScheduler.Core", "FabulousScheduler.Core\FabulousScheduler.Core.csproj", "{0E000792-BB5A-4AEA-9246-2CA5970F6C5B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JobScheduler.Cron", "JobScheduler.Cron\JobScheduler.Cron.csproj", "{43CD3484-95D2-4755-80C3-1E73C27B3271}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FabulousScheduler.Cron", "FabulousScheduler.Cron\FabulousScheduler.Cron.csproj", "{43CD3484-95D2-4755-80C3-1E73C27B3271}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JobScheduler.Queue", "JobScheduler.Queue\JobScheduler.Queue.csproj", "{6441434F-81B4-4CE6-8AAB-74EB3A5C6FA0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FabulousScheduler.Queue", "FabulousScheduler.Queue\FabulousScheduler.Queue.csproj", "{6441434F-81B4-4CE6-8AAB-74EB3A5C6FA0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JobScheduler.Tests", "JobScheduler.Tests\JobScheduler.Tests.csproj", "{D23C88D5-CA54-45F8-97C1-60CE00A45509}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FabulousScheduler.Tests", "FabulousScheduler.Tests\FabulousScheduler.Tests.csproj", "{D23C88D5-CA54-45F8-97C1-60CE00A45509}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FabulousScheduler", "FabulousScheduler\FabulousScheduler.csproj", "{F85BB55E-326C-451B-8916-B0536091216E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,5 +32,9 @@ Global
 		{D23C88D5-CA54-45F8-97C1-60CE00A45509}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D23C88D5-CA54-45F8-97C1-60CE00A45509}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D23C88D5-CA54-45F8-97C1-60CE00A45509}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F85BB55E-326C-451B-8916-B0536091216E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F85BB55E-326C-451B-8916-B0536091216E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F85BB55E-326C-451B-8916-B0536091216E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F85BB55E-326C-451B-8916-B0536091216E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

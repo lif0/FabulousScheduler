@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <TargetFrameworks>net7.0;net6.0</TargetFrameworks>
+        <PackageId>FabulousScheduler</PackageId>
+        <Authors>Kadi Gasanguseynov</Authors>
+        <Description>Lightweight, low memory, smooth execution, cron and queue job scheduler</Description>
+        <RepositoryUrl>https://github.com/lif0/FabulousScheduler/</RepositoryUrl>
+        <PackageProjectUrl>https://github.com/lif0/FabulousScheduler/</PackageProjectUrl>
+        <PackageTags>background queue cron job schedule task</PackageTags>
+        <IsPackable>true</IsPackable>
+        <Version>2.1.1</Version>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageIcon>icon.jpeg</PackageIcon>
+    </PropertyGroup>
+    
+    <ItemGroup>
+      <ProjectReference Include="..\FabulousScheduler.Cron\FabulousScheduler.Cron.csproj" />
+      <ProjectReference Include="..\FabulousScheduler.Queue\FabulousScheduler.Queue.csproj" />
+    </ItemGroup>
+    
+    <ItemGroup>
+      <None Include="..\..\.github\images\icon.jpeg">
+        <Pack>True</Pack>
+        <PackagePath></PackagePath>
+        <Link>icon.jpeg</Link>
+      </None>
+    </ItemGroup>
+</Project>
