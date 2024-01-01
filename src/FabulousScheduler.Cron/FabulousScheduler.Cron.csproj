@@ -10,8 +10,10 @@
         <RepositoryUrl>https://github.com/lif0/FabulousScheduler/</RepositoryUrl>
         <PackageProjectUrl>https://github.com/lif0/FabulousScheduler/</PackageProjectUrl>
         <PackageTags>background cron job schedule task </PackageTags>
-        <IsPackable>false</IsPackable>
-        <Version>2.1.0</Version>
+        <IsPackable>true</IsPackable>
+        <Version>2.1.1</Version>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageIcon>icon.jpeg</PackageIcon>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -24,6 +26,14 @@
 
     <ItemGroup>
       <ProjectReference Include="..\FabulousScheduler.Core\FabulousScheduler.Core.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Include="..\..\.github\images\icon.jpeg">
+        <Pack>True</Pack>
+        <PackagePath></PackagePath>
+        <Link>icon.jpeg</Link>
+      </None>
     </ItemGroup>
 
 </Project>
