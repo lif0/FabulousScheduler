@@ -11,7 +11,7 @@
         <PackageProjectUrl>https://github.com/lif0/FabulousScheduler/</PackageProjectUrl>
         <PackageTags>background queue cron job schedule task</PackageTags>
         <IsPackable>true</IsPackable>
-        <Version>2.1.1</Version>
+        <Version>2.1.2</Version>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PackageIcon>icon.jpeg</PackageIcon>
     </PropertyGroup>

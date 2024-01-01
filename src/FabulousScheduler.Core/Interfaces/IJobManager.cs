@@ -1,6 +1,3 @@
 namespace FabulousScheduler.Core.Interfaces;
 
-public interface IJobManager
-{
-	
-}
+public interface IJobManager { }

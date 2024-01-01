@@ -1,5 +1,3 @@
 namespace FabulousScheduler.Core.Interfaces.Result;
 
-public interface IJobOk
-{
-}
+public interface IJobOk { }
