@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Job.Core", "Job.Core\Job.Core.csproj", "{0E000792-BB5A-4AEA-9246-2CA5970F6C5B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JobScheduler.Cron", "JobScheduler.Cron\JobScheduler.Cron.csproj", "{43CD3484-95D2-4755-80C3-1E73C27B3271}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JobScheduler.Queue", "JobScheduler.Queue\JobScheduler.Queue.csproj", "{6441434F-81B4-4CE6-8AAB-74EB3A5C6FA0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0E000792-BB5A-4AEA-9246-2CA5970F6C5B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E000792-BB5A-4AEA-9246-2CA5970F6C5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E000792-BB5A-4AEA-9246-2CA5970F6C5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E000792-BB5A-4AEA-9246-2CA5970F6C5B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{43CD3484-95D2-4755-80C3-1E73C27B3271}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{43CD3484-95D2-4755-80C3-1E73C27B3271}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{43CD3484-95D2-4755-80C3-1E73C27B3271}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{43CD3484-95D2-4755-80C3-1E73C27B3271}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6441434F-81B4-4CE6-8AAB-74EB3A5C6FA0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6441434F-81B4-4CE6-8AAB-74EB3A5C6FA0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6441434F-81B4-4CE6-8AAB-74EB3A5C6FA0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6441434F-81B4-4CE6-8AAB-74EB3A5C6FA0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
