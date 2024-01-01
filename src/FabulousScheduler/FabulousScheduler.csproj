@@ -13,7 +13,7 @@
         <IsPackable>true</IsPackable>
         <Version>2.1.2</Version>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <PackageIcon>icon.jpeg</PackageIcon>
+        <PackageIcon>icon.png</PackageIcon>
     </PropertyGroup>
     
     <ItemGroup>
@@ -22,10 +22,10 @@
     </ItemGroup>
     
     <ItemGroup>
-      <None Include="..\..\.github\images\icon.jpeg">
+      <None Include="..\..\.github\images\icon.png">
         <Pack>True</Pack>
         <PackagePath></PackagePath>
-        <Link>icon.jpeg</Link>
+        <Link>icon.png</Link>
       </None>
     </ItemGroup>
 </Project>

@@ -13,7 +13,7 @@
         <PackageTags>background queue job schedule task </PackageTags>
         <IsPackable>true</IsPackable>
         <Version>1.0.0</Version>
-        <PackageIcon>icon.jpeg</PackageIcon>
+        <PackageIcon>icon.png</PackageIcon>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
@@ -29,10 +29,10 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Include="..\..\.github\images\icon.jpeg">
+      <None Include="..\..\.github\images\icon.png">
         <Pack>True</Pack>
         <PackagePath></PackagePath>
-        <Link>icon.jpeg</Link>
+        <Link>icon.png</Link>
       </None>
     </ItemGroup>
 
