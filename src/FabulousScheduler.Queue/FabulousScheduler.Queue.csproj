@@ -7,7 +7,7 @@
         <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
         <PackageId>FabulousScheduler.Queue</PackageId>
         <Authors>Kadi Gasanguseynov</Authors>
-        <Description>Lightweight, low memory, smooth execution, queue job scheduler</Description>
+        <Description>Parallel, lightweight, low memory, cron job scheduler</Description>
         <RepositoryUrl>https://github.com/lif0/FabulousScheduler/</RepositoryUrl>
         <PackageProjectUrl>https://github.com/lif0/FabulousScheduler/</PackageProjectUrl>
         <PackageTags>background queue job schedule task </PackageTags>
