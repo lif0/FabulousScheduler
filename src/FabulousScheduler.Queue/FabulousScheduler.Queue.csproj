@@ -14,7 +14,6 @@
         <IsPackable>true</IsPackable>
         <Version>2.1.2</Version>
         <PackageIcon>icon.jpeg</PackageIcon>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
