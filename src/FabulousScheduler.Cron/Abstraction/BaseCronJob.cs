@@ -12,7 +12,6 @@ public abstract class BaseCronJob : ICronJob
 	private readonly object _lock = new object();
 
 	private bool _disposed;
-	private Task? _taskWakeJob;
 	private long _totalFail;
 	private long _totalRun;
 	private CronJobStateEnum _state;
@@ -47,9 +46,9 @@ public abstract class BaseCronJob : ICronJob
 
 	#endregion
 	
-	protected BaseCronJob(string uniqName,  string category, TimeSpan sleepDuration)
+	protected BaseCronJob(string name,  string category, TimeSpan sleepDuration)
 	{
-		Name = uniqName;
+		Name = name;
 		Category = category;
 		this._state = CronJobStateEnum.Ready;
 
@@ -105,7 +104,7 @@ public abstract class BaseCronJob : ICronJob
 		catch (Exception e)
 		{
 			Interlocked.Increment(ref _totalFail);
-			return new JobFail(CronJobFailEnum.InternalException, e.Message, e);
+			return new JobFail(CronJobFailEnum.FailedExecute, e.Message, e);
 		}
 		finally
 		{
@@ -128,56 +127,18 @@ public abstract class BaseCronJob : ICronJob
 	public void Dispose()
 	{
 		_disposed = true;
-		if (_taskWakeJob != null)
-		{
-			_taskWakeJob.GetAwaiter().GetResult();
-		}
 	}
 
-	public async ValueTask DisposeAsync()
+	public ValueTask DisposeAsync()
 	{
 		_disposed = true;
-		if (_taskWakeJob != null)
-		{
-			await _taskWakeJob;
-		}
+		return ValueTask.CompletedTask;
 	}
 
 	#endregion
 
 	#region Private methods
 
-	private void SleepAndWakeAfterPeriod(bool jobSuccessFinish)
-	{
-		if (jobSuccessFinish && SleepDuration != TimeSpan.Zero)
-		{
-			if (_taskWakeJob is { IsCompleted: false })
-			{
-				return; //skip if not completed
-			}
-	
-			lock (_lock)
-			{
-				_state = CronJobStateEnum.Sleeping;
-			}
-			
-			_taskWakeJob = Task.Delay(SleepDuration).ContinueWith(_ =>
-			{
-				lock (_lock)
-				{
-					_state = CronJobStateEnum.Ready;
-				}
-			}, CancellationToken.None, TaskContinuationOptions.DenyChildAttach, TaskScheduler.Default);
-		}
-		else
-		{
-			lock (_lock)
-			{
-				_state = CronJobStateEnum.Ready;
-			}
-		}
-	}
-	
 	private void TryWakeUpJob()
 	{
 		if(_state is not CronJobStateEnum.Sleeping || SleepDuration == TimeSpan.Zero) return;
