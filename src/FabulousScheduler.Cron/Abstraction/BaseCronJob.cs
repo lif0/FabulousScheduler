@@ -66,13 +66,14 @@ public abstract class BaseCronJob : ICronJob
 
 	public async Task<JobResult<JobOk, JobFail>> ExecuteAsync()
 	{
-		if (_disposed)
-		{
-			return new JobFail(CronJobFailEnum.Disposed, $"The job {Name} was disposed", null);
-		}
-
 		lock (_lock)
 		{
+			if (_disposed)
+			{
+				_state = CronJobStateEnum.Disposed;
+				return new JobFail(CronJobFailEnum.Disposed, $"The job {Name} was disposed", null);
+			}
+			
 			if (_state is not (CronJobStateEnum.Ready or CronJobStateEnum.Waiting))
 			{
 				string msg = $"Incorrect state run the job. Job {Name} current state: {State}";
@@ -104,17 +105,16 @@ public abstract class BaseCronJob : ICronJob
 		catch (Exception e)
 		{
 			Interlocked.Increment(ref _totalFail);
-			return new JobFail(CronJobFailEnum.FailedExecute, e.Message, e);
+			return new JobFail(CronJobFailEnum.InternalException, e.Message, e);
 		}
 		finally
 		{
-			//SleepAndWakeAfterPeriod(LastSuccessExecute == dt);
 			_state = CronJobStateEnum.Sleeping;
 			LastExecute = dt ?? DateTime.Now;
 		}
 	}
 	
-	public void SetWaiting()
+	public void SetStateWaiting()
 	{
 		lock (_lock)
 		{
@@ -141,10 +141,15 @@ public abstract class BaseCronJob : ICronJob
 
 	private void TryWakeUpJob()
 	{
-		if(_state is not CronJobStateEnum.Sleeping || SleepDuration == TimeSpan.Zero) return;
+		if(_state is not CronJobStateEnum.Sleeping) return;
 
 		lock (_lock)
 		{
+			if (SleepDuration == TimeSpan.Zero)
+			{
+				_state = CronJobStateEnum.Ready;
+			}
+
 			if (LastSuccessExecute == null || DateTime.Now.Subtract(LastSuccessExecute.Value.AddMinutes(SleepDuration.TotalMinutes)).Ticks > 0)
 			{
 				_state = CronJobStateEnum.Ready;

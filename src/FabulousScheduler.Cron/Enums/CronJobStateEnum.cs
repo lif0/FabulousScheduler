@@ -21,5 +21,10 @@ public enum CronJobStateEnum
 	/// <summary>
 	/// The job has been told to sleep for a time.
 	/// </summary>
-	Sleeping
+	Sleeping,
+	
+	/// <summary>
+	/// The job was disposed
+	/// </summary>
+	Disposed,
 }

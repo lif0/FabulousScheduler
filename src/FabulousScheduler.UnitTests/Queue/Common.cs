@@ -9,18 +9,18 @@ namespace Job.Core.Tests.Queue;
 
 public class QueueRandomJob : BaseQueueJob
 {
-	public TimeSpan timeWorkJob { get; }
+	public TimeSpan JobSimulateWorkTime { get; }
 
-	public QueueRandomJob(string uniqName, TimeSpan time) : base(uniqName)
+	public QueueRandomJob(string name, TimeSpan jobSimulateWorkTime) : base(name)
 	{
-		timeWorkJob = time;
+		JobSimulateWorkTime = jobSimulateWorkTime;
 		base.ActionJob = SomeLogic;
 	}
 	
 	private async Task<JobResult<JobOk, JobFail>> SomeLogic()
 	{
 		int val = Random.Shared.Next(1, 10);
-		await Task.Delay(timeWorkJob);
+		await Task.Delay(JobSimulateWorkTime);
 
 		if (val % 2 == 0)
 		{
@@ -33,17 +33,17 @@ public class QueueRandomJob : BaseQueueJob
 
 public class QueueJobFailResult : BaseQueueJob
 {
-	public TimeSpan timeWorkJob { get; }
+	public TimeSpan JobSimulateWorkTime { get; }
 
-	public QueueJobFailResult(string uniqName, TimeSpan time) : base(uniqName)
+	public QueueJobFailResult(string name, TimeSpan jobSimulateWorkTime) : base(name)
 	{
-		timeWorkJob = time;
+		JobSimulateWorkTime = jobSimulateWorkTime;
 		base.ActionJob = SomeLogic;
 	}
 	
 	private async Task<JobResult<JobOk, JobFail>> SomeLogic()
 	{
-		await Task.Delay(timeWorkJob);
+		await Task.Delay(JobSimulateWorkTime);
 		return new JobFail(Id, Name, QueueJobFailEnum.InternalException, "lol", null);
 	}
 
@@ -52,17 +52,17 @@ public class QueueJobFailResult : BaseQueueJob
 
 public class QueueJobOkResult : BaseQueueJob
 {
-	public TimeSpan timeWorkJob { get; }
+	public TimeSpan JobSimulateWorkTime { get; }
 
-	public QueueJobOkResult(string uniqName, TimeSpan time) : base(uniqName)
+	public QueueJobOkResult(string name, TimeSpan jobSimulateWorkTime) : base(name)
 	{
-		timeWorkJob = time;
+		JobSimulateWorkTime = jobSimulateWorkTime;
 		base.ActionJob = SomeLogic;
 	}
 	
 	private async Task<JobResult<JobOk, JobFail>> SomeLogic()
 	{
-		await Task.Delay(timeWorkJob);
+		await Task.Delay(JobSimulateWorkTime);
 		return new JobOk(Id, Name);
 	}
 
@@ -71,17 +71,17 @@ public class QueueJobOkResult : BaseQueueJob
 
 public class QueueJobFailExceptionResult : BaseQueueJob
 {
-	public TimeSpan timeWorkJob { get; }
+	public TimeSpan JobSimulateWorkTime { get; }
 
-	public QueueJobFailExceptionResult(string uniqName, TimeSpan time) : base(uniqName)
+	public QueueJobFailExceptionResult(string name, TimeSpan jobSimulateWorkTime) : base(name)
 	{
-		timeWorkJob = time;
+		JobSimulateWorkTime = jobSimulateWorkTime;
 		base.ActionJob = SomeLogic;
 	}
 	
 	private async Task<JobResult<JobOk, JobFail>> SomeLogic()
 	{
-		await Task.Delay(timeWorkJob);
+		await Task.Delay(JobSimulateWorkTime);
 		throw new Exception("some exp");
 	}
 

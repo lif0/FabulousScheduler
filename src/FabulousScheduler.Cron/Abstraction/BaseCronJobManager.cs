@@ -9,14 +9,14 @@ namespace FabulousScheduler.Cron.Abstraction;
 public abstract class BaseCronJobManager : ICronJobManager
 {
 	private readonly object _lock;
-	private readonly SemaphoreSlim _jobPool;
+	private readonly SemaphoreSlim _jobParallelPool;
 
 	protected readonly ConcurrentDictionary<string, ICronJob> Jobs;
 
 	protected BaseCronJobManager(int maxParallelJob)
 	{
 		Jobs = new ConcurrentDictionary<string, ICronJob>();
-		_jobPool = new SemaphoreSlim(maxParallelJob, maxParallelJob);
+		_jobParallelPool = new SemaphoreSlim(maxParallelJob, maxParallelJob);
 		_lock = new object();
 	}
 	
@@ -24,12 +24,17 @@ public abstract class BaseCronJobManager : ICronJobManager
 	/// Register job
 	/// </summary>
 	/// <param name="job">job instance</param>
-	/// <returns>true - if jos is registered, otherwise false</returns>
+	/// <returns>true - if job is registered, otherwise false</returns>
 	protected bool Register(ICronJob job)
 	{
 		return Jobs.TryAdd(job.Name, job);
 	}
 	
+	/// <summary>
+	/// Register a jobs
+	/// </summary>
+	/// <param name="job">jobs</param>
+	/// <returns>count success registered jobs</returns>
 	protected int Register(IEnumerable<ICronJob> jobs)
 	{
 		int fail = 0;
@@ -49,7 +54,7 @@ public abstract class BaseCronJobManager : ICronJobManager
 		ICronJob[] jobs;
 		lock(_lock)
 		{
-			jobs = this.Jobs
+			jobs = Jobs
 				.Where(x => x.Value.State == CronJobStateEnum.Ready)
 				.Select(x => x.Value)
 				.OrderBy(x => x.LastExecute)
@@ -60,14 +65,14 @@ public abstract class BaseCronJobManager : ICronJobManager
 				return Task.FromResult(Array.Empty<JobResult<JobOk, JobFail>>());
 			}
 
-			Parallel.ForEach(jobs, j => j.SetWaiting());
+			Parallel.ForEach(jobs, j => j.SetStateWaiting());
 		}
 
 		return ExecuteJobsAsync(jobs);
 	}
 
 	#region Public
-	public int CurrentRunnableJobCount() => _jobPool.CurrentCount;
+	public int CurrentRunnableJobCount() => _jobParallelPool.CurrentCount;
 	#endregion
 	
 	#region Private
@@ -78,21 +83,23 @@ public abstract class BaseCronJobManager : ICronJobManager
 
 		var tasks = new Task[jobs.Length];
 		int i = 0;
-		
+
 		foreach (var job in jobs)
 		{
-			await _jobPool.WaitAsync();
+			await _jobParallelPool.WaitAsync();
 
 			tasks[i] = Task.Factory.StartNew(async obj =>
 			{
-				var @job = obj as ICronJob;
-				if (@job is null)
+				var cronJob = obj as ICronJob;
+				if (cronJob is null)
 				{
-					ArgumentNullException.ThrowIfNull(@job);
+					ArgumentNullException.ThrowIfNull(cronJob);
 				}
 
-				var res = await @job.ExecuteAsync();
-				_jobPool.Release();
+				//TODO :> кажется этот момент делает жесткую подству
+				var res = await cronJob.ExecuteAsync();
+				//var res = cronJob.ExecuteAsync().GetAwaiter().GetResult();
+				_jobParallelPool.Release();
 
 				return res;
 			}, job, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default);
@@ -100,7 +107,8 @@ public abstract class BaseCronJobManager : ICronJobManager
 			i++;
 		}
 
-		Task.WaitAll(tasks);
+		//Task.WaitAll(tasks);
+		await Task.WhenAll(tasks);
 
 		return results.ToArray();
 	}

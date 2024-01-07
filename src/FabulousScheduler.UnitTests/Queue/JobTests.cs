@@ -4,25 +4,25 @@ using Xunit.Abstractions;
 
 namespace Job.Core.Tests.Queue;
 
-public class JobTest
+public class JobTests
 {
 	private readonly ITestOutputHelper _testOutputHelper;
 
-	public JobTest(ITestOutputHelper testOutputHelper)
+	public JobTests(ITestOutputHelper testOutputHelper)
 	{
 		_testOutputHelper = testOutputHelper;
 	}
 
 	[Fact]
-	public async void TestExecutingJob_WaitFinishJob()
+	public async void JobTest_WaitFinishJob()
 	{
 		var conf = new Config(1, TimeSpan.FromSeconds(1));
 		var queue = new MemoryQueue();
-		int oneTimeJob_ms = 2000;
+		const int oneTimeJobMs = 2000;
 		
 		var manager = new QueueJobManager(queue, conf);
 		
-		var job = new QJob_FailExp("690", TimeSpan.FromMilliseconds(oneTimeJob_ms));
+		var job = new QJob_FailExp("jobException", TimeSpan.FromMilliseconds(oneTimeJobMs));
 		queue.Enqueue(job);
 
 		manager.Start();
@@ -34,15 +34,15 @@ public class JobTest
 	}
 	
 	[Fact]
-	public async void TestExecutingJob_Stop()
+	public void JobTest_Stop()
 	{
 		var conf = new Config(1, TimeSpan.FromSeconds(5));
 		var queue = new MemoryQueue();
-		int oneTimeJob_ms = 2000;
+		const int oneTimeJobMs = 2000;
 		
 		var manager = new QueueJobManager(queue, conf);
 		
-		var job = new QJob_FailExp("690", TimeSpan.FromMilliseconds(oneTimeJob_ms));
+		var job = new QJob_FailExp("jobException", TimeSpan.FromMilliseconds(oneTimeJobMs));
 		queue.Enqueue(job);
 
 		manager.Start();
@@ -54,7 +54,7 @@ public class JobTest
 	}
 	
 	[Fact]
-	public async void TestExecutingJob_StartStopEmptyProcessing()
+	public void JobTest_StartStopEmptyProcessing()
 	{
 		var conf = new Config(1, TimeSpan.FromSeconds(1));
 		var queue = new MemoryQueue();
@@ -68,15 +68,15 @@ public class JobTest
 	}
 	
 	[Fact]
-	public async void TestExecutingJob_ReAddToQueueProcessing()
+	public async void JobTest_ReAddToQueueProcessing()
 	{
 		var conf = new Config(1, TimeSpan.FromSeconds(1));
 		var queue = new MemoryQueue();
-		int oneTimeJob_ms = 2000;
+		const int oneTimeJobMs = 2000;
 		
 		var manager = new TestQueueReAddFailJobManager(queue, conf, 3);
 		
-		var job = new QJob_FailExp("690", TimeSpan.FromMilliseconds(oneTimeJob_ms));
+		var job = new QJob_FailExp("jobException", TimeSpan.FromMilliseconds(oneTimeJobMs));
 		queue.Enqueue(job);
 		
 		manager.Start();
@@ -90,15 +90,16 @@ public class JobTest
 	}
 	
 	[Fact]
-	public async void TestExecutingJob_FinishAfterReAddToQueueProcessing()
+	public async void JobTest_FinishAfterReAddToQueueProcessing()
 	{
 		var conf = new Config(1, TimeSpan.FromSeconds(0.1));
 		var queue = new MemoryQueue();
-		int oneTimeJob_ms = 500;
+		const int oneTimeJobMs = 500;
 		
 		var manager = new TestQueueReAddFailJobManager(queue, conf, 3);
 		
-		var job = new QJob_Fail("690", TimeSpan.FromMilliseconds(oneTimeJob_ms));
+		var job = new QJob_Fail("jobFail", TimeSpan.FromMilliseconds(oneTimeJobMs));
+		await job.ExecuteAsync();
 		queue.Enqueue(job);
 		
 		manager.Start();
@@ -113,15 +114,15 @@ public class JobTest
 	}
 	
 	[Fact]
-	public async void TestExecutingJob_MaxAttemptReAddToQueueProcessing()
+	public async void JobTest_MaxAttemptReAddToQueueProcessing()
 	{
 		var conf = new Config(1, TimeSpan.FromSeconds(0.2));
 		var queue = new MemoryQueue();
-		int oneTimeJob_ms = 200;
+		const int oneTimeJobMs = 200;
 		
 		var manager = new TestQueueReAddFailJobManager(queue, conf, 3);
 		
-		var job = new QJob_Fail("690", TimeSpan.FromMilliseconds(oneTimeJob_ms));
+		var job = new QJob_Fail("jobFail", TimeSpan.FromMilliseconds(oneTimeJobMs));
 		queue.Enqueue(job);
 		
 		manager.Start();
