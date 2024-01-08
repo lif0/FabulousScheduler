@@ -91,7 +91,7 @@ internal class CronJobManagerManualRecheck : BaseCronJobManager
 		
 	}
 	
-	public Task RecheckJobs()
+	public Task<JobResult<JobOk, JobFail>[]> RecheckJobs()
 	{
 		return ExecuteReadyJob();
 	}

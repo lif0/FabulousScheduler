@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
 using FabulousScheduler.Core.Types;
 using FabulousScheduler.Cron.Enums;
 using FabulousScheduler.Cron.Interfaces;
@@ -79,38 +80,38 @@ public abstract class BaseCronJobManager : ICronJobManager
 
 	private async Task<JobResult<JobOk, JobFail>[]> ExecuteJobsAsync(ICronJob[] jobs)
 	{
-		var results = new ConcurrentBag<JobResult<JobOk, JobFail>>();
-
-		var tasks = new Task[jobs.Length];
+		var tasks = new Task<JobResult<JobOk, JobFail>>[jobs.Length];
 		int i = 0;
 
 		foreach (var job in jobs)
 		{
 			await _jobParallelPool.WaitAsync();
-
-			tasks[i] = Task.Factory.StartNew(async obj =>
-			{
-				var cronJob = obj as ICronJob;
-				if (cronJob is null)
+			tasks[i] = await Task.Factory.StartNew(
+				async obj =>
 				{
-					ArgumentNullException.ThrowIfNull(cronJob);
-				}
+					var cronJob = obj as ICronJob;
+					if (cronJob is null)
+					{
+						ArgumentNullException.ThrowIfNull(cronJob);
+					}
+		
+					var res = await cronJob.ExecuteAsync();
+					_jobParallelPool.Release();
 
-				//TODO :> кажется этот момент делает жесткую подству
-				var res = await cronJob.ExecuteAsync();
-				//var res = cronJob.ExecuteAsync().GetAwaiter().GetResult();
-				_jobParallelPool.Release();
-
-				return res;
-			}, job, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default);
-
+					return res;
+				}, 
+				job,
+				CancellationToken.None,
+				TaskCreationOptions.DenyChildAttach,
+				TaskScheduler.Default);
+			
 			i++;
 		}
 
 		//Task.WaitAll(tasks);
 		await Task.WhenAll(tasks);
-
-		return results.ToArray();
+		
+		return tasks.Select(x => x.Result).ToArray();
 	}
 
 	#endregion
