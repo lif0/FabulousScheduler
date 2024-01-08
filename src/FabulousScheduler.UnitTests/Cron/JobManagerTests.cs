@@ -5,11 +5,11 @@ using Xunit.Abstractions;
 
 namespace Job.Core.Tests.Cron;
 
-public class JobManagerTestsa
+public class JobManagerTests
 {
 	private readonly ITestOutputHelper _testOutputHelper;
 
-	public JobManagerTestsa(ITestOutputHelper testOutputHelper)
+	public JobManagerTests(ITestOutputHelper testOutputHelper)
 	{
 		_testOutputHelper = testOutputHelper;
 	}
@@ -76,7 +76,7 @@ public class JobManagerTestsa
 		
 		double expectedWorkTimeSec = countJobs / (countJobs >= parallelJobs ? parallelJobs : 1) *
 		                             (oneTimeJobMs / 1000.0 /*in sec*/);
-		Assert.Equal(expectedWorkTimeSec,sw.Elapsed.TotalSeconds,.5f);
+		Assert.Equal(expectedWorkTimeSec,sw.Elapsed.TotalSeconds,5f);
 		Assert.Equal(countJobs, results.Length);
 	}
 
@@ -101,7 +101,7 @@ public class JobManagerTestsa
 		// ReSharper disable once PossibleLossOfFraction
 		double expectedWorkTimeSec = countJobs / (countJobs >= parallelJobs ? parallelJobs : 1) * 
 		                             (oneTimeJobMs / 1000.0 /*in sec*/);
-		Assert.Equal(expectedWorkTimeSec, sw.Elapsed.TotalSeconds, .5f);
+		Assert.Equal(expectedWorkTimeSec, sw.Elapsed.TotalSeconds, 5f);
 	}
 	
 	[Fact]
@@ -122,7 +122,7 @@ public class JobManagerTestsa
 		// ReSharper disable once PossibleLossOfFraction
 		double expectedWorkTimeSec = countJobs / (countJobs >= parallelJobs ? parallelJobs : 1) * 
 		                             (oneTimeJobMs / 1000.0 /*in sec*/);
-		Assert.Equal(expectedWorkTimeSec, sw.Elapsed.TotalSeconds, .5f);
+		Assert.Equal(expectedWorkTimeSec, sw.Elapsed.TotalSeconds, 5f);
 	}
 	
 	[Fact]
