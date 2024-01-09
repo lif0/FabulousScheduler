@@ -8,7 +8,7 @@ Currently a WIP and in Active development.
 
 
 <!--![build](https://github.com/lif0/FabulousScheduler/actions/workflows/github-actions-build.yml/badge.svg) ![tests](https://github.com/lif0/FabulousScheduler/actions/workflows/github-actions-build.yml/badge.svg) -->
-![publish](https://github.com/lif0/FabulousScheduler/actions/workflows/github-actions-push-nuget.yml/badge.svg) [![NuGet](https://img.shields.io/nuget/v/FabulousScheduler.svg)](https://www.nuget.org/packages/FabulousScheduler)  [![Downloads](https://img.shields.io/nuget/dt/FabulousScheduler.svg)](https://www.nuget.org/packages/FabulousScheduler) [![license](https://img.shields.io/github/license/lif0/FabulousScheduler.svg)](https://github.com/lif0/FabulousScheduler/blob/main/LICENSE)
+![build](https://github.com/lif0/FabulousScheduler/actions/workflows/github-actions-build.yml/badge.svg) ![tests](https://github.com/lif0/FabulousScheduler/actions/workflows/github-actions-tests.yml/badge.svg) ![publish](https://github.com/lif0/FabulousScheduler/actions/workflows/github-actions-push-nuget.yml/badge.svg) [![NuGet](https://img.shields.io/nuget/v/FabulousScheduler.svg)](https://www.nuget.org/packages/FabulousScheduler) [![Downloads](https://img.shields.io/nuget/dt/FabulousScheduler.svg)](https://www.nuget.org/packages/FabulousScheduler) [![license](https://img.shields.io/github/license/lif0/FabulousScheduler.svg)](https://github.com/lif0/FabulousScheduler/blob/main/LICENSE)
 
 <!--[![build](https://github.com/lif0/FabulousScheduler/workflows/build/badge.svg?branch=main)](https://github.com/lif0/FabulousScheduler/actions?query=branch%3Amain) -->
 

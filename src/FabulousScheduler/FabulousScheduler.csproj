@@ -3,15 +3,15 @@
     <PropertyGroup>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
+        <TargetFrameworks>net6.0;net7.0;net8.0</TargetFrameworks>
         <PackageId>FabulousScheduler</PackageId>
         <Authors>Kadi Gasanguseynov</Authors>
         <Description>Parallel, lightweight, low memory, smooth execution, cron and queue job scheduler</Description>
         <RepositoryUrl>https://github.com/lif0/FabulousScheduler/</RepositoryUrl>
         <PackageProjectUrl>https://github.com/lif0/FabulousScheduler/</PackageProjectUrl>
-        <PackageTags>background queue cron job schedule task</PackageTags>
+        <PackageTags>scheduler cron-jobs queue-jobs fabulous custom-cron advanced-cron-scheduler advanced-queue-scheduler cron-tweaks queue-tweaks fluent</PackageTags>
         <IsPackable>true</IsPackable>
-        <Version>2.1.2</Version>
+        <Version>1.0.1</Version>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PackageIcon>icon.png</PackageIcon>
     </PropertyGroup>

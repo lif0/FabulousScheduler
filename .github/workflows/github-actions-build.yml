@@ -1,4 +1,4 @@
-name: "tests"
+name: "build"
 
 on:
   push:
@@ -30,6 +30,3 @@ jobs:
 
       - name: Build project
         run: dotnet build ${{ env.PROJECT_PATH }} --no-restore --configuration Release
-
-      - name: Test
-        run: dotnet test ${{ env.PROJECT_PATH }}
