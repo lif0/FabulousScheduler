@@ -1,3 +1,5 @@
+using FabulousScheduler.Core.Interfaces.Result;
+
 namespace FabulousScheduler.Core.Types;
 
 /// <summary>
@@ -5,7 +7,7 @@ namespace FabulousScheduler.Core.Types;
 /// </summary>
 /// <typeparam name="TOk">Valid JobJobResult</typeparam>
 /// <typeparam name="TFail">Exception or not valid JobJobResult</typeparam>
-public class JobResult<TOk, TFail>
+public class JobResult<TOk, TFail> where TOk : IJobOk where TFail : IJobFail
 {
     private readonly TOk? _value;
     private readonly TFail? _fail;
@@ -26,13 +28,18 @@ public class JobResult<TOk, TFail>
         _fail = value;
         _value = default;
     }
-	
-
+    
     public static implicit operator JobResult<TOk,TFail>(TOk value) => new(value);
     public static implicit operator JobResult<TOk,TFail>(TFail fail) => new(fail);
 
     public (TResult, TFailResult) Match<TResult, TFailResult>(Func<TOk?, TFail?, (TResult, TFailResult)> f) => f(_value, _fail);
-	
+
+    /// <summary>
+    /// Get job's identity
+    /// </summary>
+    /// <returns>job's identity</returns>
+    public Guid Id => !IsFail ? _value!.ID : _fail!.Id;
+
     public TFail? GetFail() => _fail;
 	
     public TResult Match<TResult>(

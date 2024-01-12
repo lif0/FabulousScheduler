@@ -10,6 +10,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FabulousScheduler.UnitTests
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FabulousScheduler", "FabulousScheduler\FabulousScheduler.csproj", "{F85BB55E-326C-451B-8916-B0536091216E}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{253A32F6-B196-4885-A8AB-8E50A0060AF3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FabulousScheduler.CronSample", "Samples\FabulousScheduler.CronSample\FabulousScheduler.CronSample.csproj", "{CA2A6645-14F0-46FA-98C0-1F76AFBAD639}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +40,12 @@ Global
 		{F85BB55E-326C-451B-8916-B0536091216E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F85BB55E-326C-451B-8916-B0536091216E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F85BB55E-326C-451B-8916-B0536091216E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CA2A6645-14F0-46FA-98C0-1F76AFBAD639}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA2A6645-14F0-46FA-98C0-1F76AFBAD639}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CA2A6645-14F0-46FA-98C0-1F76AFBAD639}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CA2A6645-14F0-46FA-98C0-1F76AFBAD639}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{CA2A6645-14F0-46FA-98C0-1F76AFBAD639} = {253A32F6-B196-4885-A8AB-8E50A0060AF3}
 	EndGlobalSection
 EndGlobal

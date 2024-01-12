@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Runtime.CompilerServices;
 using FabulousScheduler.Core.Types;
 using FabulousScheduler.Cron.Enums;
 using FabulousScheduler.Cron.Interfaces;
@@ -11,13 +10,16 @@ public abstract class BaseCronJobManager : ICronJobManager
 {
 	private readonly object _lock;
 	private readonly SemaphoreSlim _jobParallelPool;
+	
+	protected readonly Config Config;
+	protected readonly ConcurrentDictionary<Guid, ICronJob> Jobs;
 
-	protected readonly ConcurrentDictionary<string, ICronJob> Jobs;
-
-	protected BaseCronJobManager(int maxParallelJob)
+	protected BaseCronJobManager(Config? config)
 	{
-		Jobs = new ConcurrentDictionary<string, ICronJob>();
-		_jobParallelPool = new SemaphoreSlim(maxParallelJob, maxParallelJob);
+		Config = config ?? Config.Default;
+
+		Jobs = new ConcurrentDictionary<Guid, ICronJob>();
+		_jobParallelPool = new SemaphoreSlim(Config.MaxParallelJobExecute, Config.MaxParallelJobExecute);
 		_lock = new object();
 	}
 	
@@ -28,20 +30,20 @@ public abstract class BaseCronJobManager : ICronJobManager
 	/// <returns>true - if job is registered, otherwise false</returns>
 	protected bool Register(ICronJob job)
 	{
-		return Jobs.TryAdd(job.Name, job);
+		return Jobs.TryAdd(job.Id, job);
 	}
-	
+
 	/// <summary>
 	/// Register a jobs
 	/// </summary>
-	/// <param name="job">jobs</param>
+	/// <param name="jobs">jobs</param>
 	/// <returns>count success registered jobs</returns>
 	protected int Register(IEnumerable<ICronJob> jobs)
 	{
 		int fail = 0;
 		foreach (var job in jobs)
 		{
-			if (!this.Jobs.TryAdd(job.Name, job))
+			if (!this.Jobs.TryAdd(job.Id, job))
 			{
 				fail++;
 			}
@@ -102,7 +104,7 @@ public abstract class BaseCronJobManager : ICronJobManager
 				}, 
 				job,
 				CancellationToken.None,
-				TaskCreationOptions.DenyChildAttach,
+				TaskCreationOptions.DenyChildAttach | TaskCreationOptions.PreferFairness,
 				TaskScheduler.Default);
 			
 			i++;

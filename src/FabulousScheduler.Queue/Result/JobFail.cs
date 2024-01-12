@@ -1,11 +1,13 @@
+using System.Diagnostics.CodeAnalysis;
 using FabulousScheduler.Core.Interfaces.Result;
 using FabulousScheduler.Queue.Enums;
 
 namespace FabulousScheduler.Queue.Result;
 
+[SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
 public class JobFail : Exception, IJobFail  
 {
-	public JobFail(Guid id, string name, QueueJobFailEnum reason, string message, Exception? exception)
+	public JobFail(Guid id, string name, QueueJobFailEnum reason, string message, Exception? exception): base(message)
 	{
 		Id = id;
 		Name = name;

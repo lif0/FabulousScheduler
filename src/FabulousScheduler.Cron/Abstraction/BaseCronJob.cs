@@ -20,6 +20,7 @@ public abstract class BaseCronJob : ICronJob
 
 	#region Info
 
+	
 	public string Name { get; }
 	public string Category { get; }
 
@@ -37,7 +38,8 @@ public abstract class BaseCronJob : ICronJob
 	#endregion
 
 	#region Data
-	
+
+	public Guid Id { get; }
 	public DateTime? LastExecute { get; private set; }
 	public DateTime? LastSuccessExecute { get; private set; }
 	
@@ -48,17 +50,18 @@ public abstract class BaseCronJob : ICronJob
 	
 	protected BaseCronJob(string name,  string category, TimeSpan sleepDuration)
 	{
+		Id = Guid.NewGuid();
 		Name = name;
 		Category = category;
 		this._state = CronJobStateEnum.Ready;
 
-		if (sleepDuration != TimeSpan.MaxValue && sleepDuration != TimeSpan.MinValue && sleepDuration != TimeSpan.Zero)
+		if (sleepDuration  == TimeSpan.MinValue || sleepDuration == TimeSpan.Zero)
 		{
-			SleepDuration = sleepDuration;
+			SleepDuration = TimeSpan.Zero;
 		}
 		else
 		{
-			SleepDuration = TimeSpan.Zero;
+			SleepDuration = sleepDuration;
 		}
 	}
 
@@ -71,13 +74,13 @@ public abstract class BaseCronJob : ICronJob
 			if (_disposed)
 			{
 				_state = CronJobStateEnum.Disposed;
-				return new JobFail(CronJobFailEnum.Disposed, $"The job {Name} was disposed", null);
+				return new JobFail(this.Id, CronJobFailEnum.Disposed, $"The job {Name} was disposed", null);
 			}
 			
 			if (_state is not (CronJobStateEnum.Ready or CronJobStateEnum.Waiting))
 			{
 				string msg = $"Incorrect state run the job. Job {Name} current state: {State}";
-				return new JobFail(CronJobFailEnum.IncorrectState, msg, null);
+				return new JobFail(this.Id, CronJobFailEnum.IncorrectState, msg, null);
 			}
 
 			_state = CronJobStateEnum.Running;
@@ -105,7 +108,7 @@ public abstract class BaseCronJob : ICronJob
 		catch (Exception e)
 		{
 			Interlocked.Increment(ref _totalFail);
-			return new JobFail(CronJobFailEnum.InternalException, e.Message, e);
+			return new JobFail(this.Id,CronJobFailEnum.InternalException, e.Message, e);
 		}
 		finally
 		{

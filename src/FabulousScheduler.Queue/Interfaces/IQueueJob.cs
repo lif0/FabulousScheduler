@@ -7,7 +7,6 @@ namespace FabulousScheduler.Queue.Interfaces;
 
 public interface IQueueJob: IJob
 {
-	public Guid Id { get; }
 	public string Name { get; }
 	public ushort TotalRun { get; }
 	public QueueJobStateEnum State { get; }

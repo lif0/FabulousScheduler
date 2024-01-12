@@ -1,5 +1,6 @@
 // ReSharper disable UnusedMethodReturnValue.Global
 using FabulousScheduler.Core.Types;
+using FabulousScheduler.Cron;
 using FabulousScheduler.Cron.Abstraction;
 using FabulousScheduler.Cron.Enums;
 using FabulousScheduler.Cron.Interfaces;
@@ -23,10 +24,10 @@ internal class CronJobRandomResult : BaseCronJob
 
 		if (Random.Shared.Next(1, 10) % 2 == 0)
 		{
-			return new JobOk();
+			return new JobOk(this.Id);
 		}
 
-		return new JobFail(CronJobFailEnum.FailedExecute, "test error", null);
+		return new JobFail(this.Id, CronJobFailEnum.FailedExecute, "test error", null);
 	}
 }
 
@@ -42,7 +43,7 @@ internal class CronJobOkResult : BaseCronJob
 	protected override async Task<JobResult<JobOk, JobFail>> ActionJob()
 	{
 		await Task.Delay(JobSimulateWorkTime);
-		return new JobOk();
+		return new JobOk(this.Id);
 	}
 
 }
@@ -59,7 +60,7 @@ internal class CronJobFailedExecuteResult : BaseCronJob
 	protected override async Task<JobResult<JobOk, JobFail>> ActionJob()
 	{
 		await Task.Delay(JobSimulateWorkTime);
-		return new JobFail(CronJobFailEnum.FailedExecute, "test error", null);
+		return new JobFail(this.Id, CronJobFailEnum.FailedExecute, "test error", null);
 	}
 
 	
@@ -67,7 +68,7 @@ internal class CronJobFailedExecuteResult : BaseCronJob
 
 internal class CronJobInternalExceptionResult : BaseCronJob
 {
-	public TimeSpan JobSimulateWorkTime { get; }
+	private TimeSpan JobSimulateWorkTime { get; }
 
 	public CronJobInternalExceptionResult(string name, TimeSpan sleepDuration, TimeSpan jobSimulateWorkTime) : base(name, "test error", sleepDuration)
 	{
@@ -86,7 +87,7 @@ internal class CronJobInternalExceptionResult : BaseCronJob
 
 internal class CronJobManagerManualRecheck : BaseCronJobManager
 {
-	public CronJobManagerManualRecheck(int maxParallelJob) : base(maxParallelJob)
+	public CronJobManagerManualRecheck(Config? config) : base(config)
 	{
 		
 	}
@@ -96,12 +97,12 @@ internal class CronJobManagerManualRecheck : BaseCronJobManager
 		return ExecuteReadyJob();
 	}
 
-	public bool Register(ICronJob job)
+	public new bool Register(ICronJob job)
 	{
 		return base.Register(job);
 	}
 
-	public int Register(IEnumerable<ICronJob> jobs)
+	public new int Register(IEnumerable<ICronJob> jobs)
 	{
 		return base.Register(jobs);
 	}

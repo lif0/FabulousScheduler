@@ -1,25 +1,19 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using FabulousScheduler.Cron;
 using FabulousScheduler.Cron.Enums;
 using FabulousScheduler.Cron.Interfaces;
-using Xunit.Abstractions;
 
 namespace Job.Core.Tests.Cron;
 
 public class JobManagerTests
 {
-	private readonly ITestOutputHelper _testOutputHelper;
-
-	public JobManagerTests(ITestOutputHelper testOutputHelper)
-	{
-		_testOutputHelper = testOutputHelper;
-	}
-
 	[Fact]
 	public async void Time_FailOne()
 	{
 		const int oneTimeJobMs = 100;
 	
-		var manager = new CronJobManagerManualRecheck(maxParallelJob: 1);
+		var manager = new CronJobManagerManualRecheck(new Config(1, TimeSpan.MaxValue));
 		var job = new Job_Fail("okFail", TimeSpan.Zero, TimeSpan.FromMilliseconds(oneTimeJobMs));
 		manager.Register(job);
 	
@@ -42,7 +36,7 @@ public class JobManagerTests
 	{
 		const int oneTimeJobMs = 100;
 	
-		var manager = new CronJobManagerManualRecheck(maxParallelJob: 1);
+		var manager = new CronJobManagerManualRecheck(new Config(1, TimeSpan.MaxValue));
 		var job = new Job_Ok("okJob", TimeSpan.Zero, TimeSpan.FromMilliseconds(oneTimeJobMs));
 		manager.Register(job);
 	
@@ -60,10 +54,11 @@ public class JobManagerTests
 	}
 
 	[Fact]
+	[SuppressMessage("ReSharper", "PossibleLossOfFraction")]
 	public async void Time_1k()
 	{
 		int countJobs = 1000, oneTimeJobMs = 20, parallelJobs = 10;
-		var manager = new CronJobManagerManualRecheck(maxParallelJob: parallelJobs);
+		var manager = new CronJobManagerManualRecheck(new Config(parallelJobs, TimeSpan.MaxValue));
 
 		for (int i = 1; i <= countJobs; i++)
 		{
@@ -84,7 +79,7 @@ public class JobManagerTests
 	public async void Time_5k()
 	{
 		int countJobs = 5000, oneTimeJobMs = 6, parallelJobs = 20;
-		var manager = new CronJobManagerManualRecheck(maxParallelJob: parallelJobs);
+		var manager = new CronJobManagerManualRecheck(new Config(parallelJobs, TimeSpan.MaxValue));
 		
 		
 		for (int i = 1; i <= countJobs; i++)
@@ -108,7 +103,7 @@ public class JobManagerTests
 	public async void Time_50k()
 	{
 		int countJobs = 50000, oneTimeJobMs = 5, parallelJobs = 100;
-		var manager = new CronJobManagerManualRecheck(maxParallelJob: parallelJobs);
+		var manager = new CronJobManagerManualRecheck(new Config(parallelJobs, TimeSpan.MaxValue));
 
 		for (int i = 1; i <= countJobs; i++)
 		{
@@ -129,7 +124,7 @@ public class JobManagerTests
 	public void Count_InSleepPeriod()
 	{
 		int countJobs = 10000, oneTimeJobMs = 1, parallelJobs = 10;
-		var manager = new CronJobManagerManualRecheck(maxParallelJob: parallelJobs);
+		var manager = new CronJobManagerManualRecheck(new Config(parallelJobs, TimeSpan.MaxValue));
 
 		var jobs = new List<ICronJob>();
 		
@@ -160,7 +155,7 @@ public class JobManagerTests
 	{
 		TimeSpan sleepDuration = TimeSpan.FromSeconds(1);
 		int countJobs = 10000, oneTimeJobMs = 1, parallelJobs = 10;
-		var manager = new CronJobManagerManualRecheck(maxParallelJob: parallelJobs);
+		var manager = new CronJobManagerManualRecheck(new Config(parallelJobs, TimeSpan.MaxValue));
 
 		var jobs = new List<ICronJob>();
 		
@@ -192,7 +187,7 @@ public class JobManagerTests
 	public void Count_JobTwoTimeInSleepTimePeriod()
 	{
 		const int oneTimeJobMs = 25;
-		var manager = new JobManager(maxParallelJob: 10);
+		var manager = new JobManager(new Config(10, TimeSpan.MaxValue));
 		var job = new Job_Ok("jobOk", TimeSpan.FromSeconds(10), TimeSpan.FromMilliseconds(oneTimeJobMs));
 		manager.Register(job);
 		
@@ -217,7 +212,7 @@ public class JobManagerTests
 	{
 		const int oneTimeJobMs = 25;
 
-		var manager = new JobManager(maxParallelJob: 10);
+		var manager = new JobManager(new Config(10, TimeSpan.MaxValue));
 		var job = new Job_Ok("jobOk", TimeSpan.FromSeconds(2), TimeSpan.FromMilliseconds(oneTimeJobMs));
 		manager.Register(job);
 		
