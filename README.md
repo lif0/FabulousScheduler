@@ -1,5 +1,5 @@
 <div align="center">
-<img src="./assets/logo.png" width="50%" height="auto" > 
+<img src="./assets/logo.png" width="70%" height="auto" > 
 <h2 align="center">✨High performance cron & queue scheduler✨</h2>
 <h3 align="center">🌪️Currently a WIP and in Active development.</h3>
 
@@ -17,6 +17,7 @@
 ## 📖 Contents
 
 - [Motivation](#motivation)
+- [Purpose](#purpose)
 - [Related works](#related-works) (future)
 - [Features](#features)
 - [Usage](#usage)
@@ -29,8 +30,14 @@
 - [Contribute](#contribute) (future)
 - [License](#LICENSE)
 
-## 🫵 Who is this library for
-I have developed this library for cases where you need to launch a large number of tasks without stopping. When you need to do a lot of action in parallel and on a competitive basis in a timely manner. I used this library where I had to grab the site pages at the same time once a minute and it proved to be stable.
+
+## 💡 Motivation <a id="motivation" />
+
+One day I came across the fact that none of the dotnet cron libraries can perform many tasks in parallel, while doing it on time and non-stop. I needed to grab html pages with prices for certain products from sites such as <i>ebay, amazon, walmart</i>, to track the best deals for certain products and send a notification with a link to these products to my client.
+<br><br>**Please leave a ⭐ as motivation if you liked the lib 😄**<br>
+
+## 🫵 Who is this library for <a id="purpose" /> 
+I have developed this library for cases where you need to launch a large count of tasks without stopping. When you need to do a lot of action in parallel and on a competitive basis in a timely manner. I used this library where I had to grab the site pages at the same time once a minute and it proved to be stable.
 <br> In which projects it will be perform best❓<br>
 - If you need to grab a site pages without stopping <br>
 - If you need to get price quotes from exchanges for a large count of shares by API
@@ -38,9 +45,11 @@ I have developed this library for cases where you need to launch a large number 
 
 ## 🚀 Features <a id="features" />
 - Default queue scheduler
-- Расписать ридми с объяснениями что за такой JobResult
-- Добавить возвращение Джобы
-- Добавить перегрузку с Именем, Категорией
+- Docs for CustomCronJobManager
+- Add a job pass to eventHandler
+- Add in parama to DefaulCronManager Name, Category
+- Benchmark for JobResult type
+- Benchmark
 - Possibility set a custom thread pool to prioritize a jobs
 - Cover all project with unit tests
 
@@ -57,7 +66,29 @@ dotnet add package FabulousScheduler
 
 ### ✏️ Examples <a id="examples" />
 
-**Use flow**
+****
+**Main idea**
+
+Every Job return the type <b>JobResult<<i>IJobOk</i>, <i>IJobFail</i>></b> if a job complete with success will be return an instance of <b><i>IJobOk</i></b> else <b><i>IJobFail</i></b>. I decided that an exception should not be throw, if an exception occurs, it will be put in <b><i>IJobFail</i></b>.<i>Exception</i>.
+
+**Result matching**
+
+```csharp
+    JobResult<Cron.JobOk, Cron.JobFail> result;
+    
+    // Do action
+    result.Do(
+        success: (ok) => Console.WriteLine("{0} is success", ok.ID),
+        failure: (fail) => Console.WriteLine("{0} is failure. Msg:{1}", fail.Id, fail.Message)
+    );
+    
+    // or matching
+    var msg = result.Match<string>(
+        success: ok => string.Format("{0} is success", ok.ID),
+        failure: fail => string.Format("{0} is failure. Msg:{1}", fail.Id, fail.Message)
+    );
+    Console.WriteLine(msg);
+```
 
 FabulousScheduler uses a builder pattern that allows you to conveniently create a cron or queue jobs for executing
 
@@ -77,7 +108,6 @@ CronJobManager.CallbackEvent += result =>
 CronJobManager.Register(
     action: () =>
     {
-        Console.WriteLine();
         throw new Exception("some err");
     },
     sleepDuration: TimeSpan.FromSeconds(1) 
@@ -85,11 +115,6 @@ CronJobManager.Register(
 // The job will fall asleep for 1 second after  success completion, then it will wake up and will be push the job pool
 
 Thread.Sleep(-1);
-```
-
-**Cache**
-```csharp
-
 ```
 
 ## 📄 LICENSE <a id="LICENSE" />

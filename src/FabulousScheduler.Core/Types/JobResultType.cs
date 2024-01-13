@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using FabulousScheduler.Core.Interfaces.Result;
 
 namespace FabulousScheduler.Core.Types;
@@ -30,8 +31,7 @@ public class JobResult<TOk, TFail> where TOk : IJobOk where TFail : IJobFail
     }
     
     public static implicit operator JobResult<TOk,TFail>(TOk value) => new(value);
-    public static implicit operator JobResult<TOk,TFail>(TFail fail) => new(fail);
-
+    public static implicit operator JobResult<TOk, TFail>(TFail fail) => new(fail);
     public (TResult, TFailResult) Match<TResult, TFailResult>(Func<TOk?, TFail?, (TResult, TFailResult)> f) => f(_value, _fail);
 
     /// <summary>
@@ -41,7 +41,7 @@ public class JobResult<TOk, TFail> where TOk : IJobOk where TFail : IJobFail
     public Guid Id => !IsFail ? _value!.ID : _fail!.Id;
 
     public TFail? GetFail() => _fail;
-	
+
     public TResult Match<TResult>(
         Func<TOk, TResult> success,
         Func<TFail, TResult> failure) =>
@@ -51,4 +51,17 @@ public class JobResult<TOk, TFail> where TOk : IJobOk where TFail : IJobFail
         Func<TOk, Task<TResult>> success,
         Func<TFail, Task<TResult>> failure) =>
         !IsFail ? success(_value!) : failure(_fail!);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Do(Action<TOk> success, Action<TFail> failure)
+    {
+        if (IsFail)
+        {
+            failure(_fail!);
+        }
+        else
+        {
+            success(_value!);
+        }
+    }
 }

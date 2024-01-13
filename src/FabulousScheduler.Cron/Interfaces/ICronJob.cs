@@ -9,7 +9,6 @@ public interface ICronJob: IJob
 {
 	public string Name { get; }
 	public string Category { get; }
-	//public string Description { get; }
 	public CronJobStateEnum State { get; }
 	public TimeSpan SleepDuration { get; }
 	public long TotalRun { get; }
