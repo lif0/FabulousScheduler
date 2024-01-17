@@ -6,10 +6,10 @@
         <TargetFrameworks>net6.0;net7.0;net8.0</TargetFrameworks>
         <PackageId>FabulousScheduler</PackageId>
         <Authors>Kadi Gasanguseynov</Authors>
-        <Description>Parallel, lightweight, low memory, smooth execution, cron and queue job scheduler</Description>
+        <Description>High performance cron/queue fabulous job scheduler.</Description>
         <RepositoryUrl>https://github.com/lif0/FabulousScheduler/</RepositoryUrl>
         <PackageProjectUrl>https://github.com/lif0/FabulousScheduler/</PackageProjectUrl>
-        <PackageTags>scheduler cron-jobs queue-jobs fabulous custom-cron advanced-cron-scheduler advanced-queue-scheduler cron-tweaks queue-tweaks fluent</PackageTags>
+        <PackageTags>scheduler cron-scheduler queue-scheduler advanced-cron-scheduler advanced-queue-scheduler cron-tweaks queue-tweaks fluent</PackageTags>
         <IsPackable>true</IsPackable>
         <Version>1.0.1</Version>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
