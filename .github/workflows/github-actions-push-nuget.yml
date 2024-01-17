@@ -38,7 +38,7 @@ jobs:
         uses: battila7/get-version-action@v2
         
       - name: Build project
-        run: dotnet build ${{ env.PROJECT_PATH }} --no-restore --configuration Release  -p:AssemblyVersion=${{ steps.get_version.outputs.version-without-v }}        
+        run: dotnet build ${{ env.PROJECT_PATH }} --no-restore --configuration Release  -p:AssemblyVersion=${{ steps.version.outputs.version-without-v }}        
 
       - name: Pack project
         run: dotnet pack ${{ env.PROJECT_PATH }} --no-restore --no-build --configuration Release -p:PackageVersion=${{ steps.version.outputs.version-without-v }} --output ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
