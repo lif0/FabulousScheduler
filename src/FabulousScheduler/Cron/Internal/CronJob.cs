@@ -16,6 +16,16 @@ internal sealed class CronJob : BaseCronJob
     {
         _action = action;
     }
+    
+    public CronJob(Func<Task> action, string name, TimeSpan sleepDuration) : base(name, CategoryJob, sleepDuration)
+    {
+        _action = action;
+    }
+    
+    public CronJob(Func<Task> action, string name, string category, TimeSpan sleepDuration) : base(name, category, sleepDuration)
+    {
+        _action = action;
+    }
 
     protected override async Task<JobResult<JobOk, JobFail>> ActionJob()
     {

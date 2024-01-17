@@ -105,7 +105,7 @@ public class JobTests
 	{
 		const int oneTimeJobMs = 25;
 
-		var job = new Job_Ok("stateToReady", TimeSpan.MaxValue, TimeSpan.FromMilliseconds(oneTimeJobMs));
+		var job = new Job_Ok("stateToReady", TimeSpan.MinValue, TimeSpan.FromMilliseconds(oneTimeJobMs));
 		await job.ExecuteAsync();
 		
 		Assert.NotNull(job.LastExecute);

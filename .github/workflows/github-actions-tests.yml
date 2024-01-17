@@ -1,7 +1,10 @@
-name: "tests"
+name: "unit-tests"
 
 on:
   push:
+    branches:
+      - main
+  pull_request:
     branches:
       - main
 
@@ -10,7 +13,7 @@ env:
 
 jobs:
   test:
-    name: 'Run Test'
+    name: 'Run Unit Test'
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -32,4 +35,4 @@ jobs:
         run: dotnet build ${{ env.PROJECT_PATH }} --no-restore --configuration Release
 
       - name: Test
-        run: dotnet test ${{ env.PROJECT_PATH }}
+        run: dotnet test ${{ env.PROJECT_PATH }}/FabulousScheduler.UnitTests/FabulousScheduler.UnitTests.csproj --nologo

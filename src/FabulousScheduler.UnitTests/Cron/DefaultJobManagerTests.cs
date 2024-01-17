@@ -13,62 +13,67 @@ public class DefaultJobManagerTests
     public DefaultJobManagerTests(ITestOutputHelper testOutputHelper)
     {
         _testOutputHelper = testOutputHelper;
+        
+        var conf = new Config(1, TimeSpan.FromMilliseconds(50));
+        CronJobManager.Init(conf);
     }
-
+    
     [Fact]
     public async void Time_FailOne()
     {
         const int oneTimeJobMs = 100;
-
-        var conf = new Config(1, TimeSpan.FromMilliseconds(50));
-        CronJobManager.Init(conf);
+        Guid jobID = Guid.Empty;
         TaskCompletionSource<JobResult<JobOk, JobFail>> tcs = new();
         int countCall = 0;
-
-        CronJobManager.CallbackEvent += r =>
+        
+        void OnCallbackEvent(JobResult<JobOk, JobFail> r)
         {
-	        _testOutputHelper.WriteLine("${0} IsFail: {1}", r.Id, r.IsFail);
+	        if (r.Id != jobID) return;
+
+	        _testOutputHelper.WriteLine("${0} IsFail: {1} {2}", r.Id, r.IsFail, DateTime.Now.Ticks);
 	        Interlocked.Increment(ref countCall);
 	        tcs.SetResult(r);
 	        tcs.TrySetCanceled();
-        };
-
-
-        CronJobManager.Register(
+        }
+        CronJobManager.CallbackEvent += OnCallbackEvent;
+        
+        jobID = CronJobManager.Register(
 	        action: async () =>
 	        {
 		        await Task.Delay(oneTimeJobMs);
-		        throw new Exception("some error");
+		        throw new Exception("some error"); // because is error, job.State will be Ready forever!
 	        }, TimeSpan.MaxValue
-	    );
-        
+        );
+
         var result = await tcs.Task;
+        CronJobManager.CallbackEvent -= OnCallbackEvent;
         Assert.NotNull(result.GetFail());
         Assert.True(result.IsFail);
         Assert.Equal(1, countCall);
         Assert.Equal("some error", result.GetFail()?.Message);
     }
-    
+
     [Fact]
     public async void Time_SuccessOne()
     {
 	    const int oneTimeJobMs = 100;
-
-	    var conf = new Config(1, TimeSpan.FromMilliseconds(50));
-	    CronJobManager.Init(conf);
+	    Guid jobID = Guid.Empty;
 	    TaskCompletionSource<JobResult<JobOk, JobFail>> tcs = new();
 	    int countCall = 0;
-
-	    CronJobManager.CallbackEvent += r =>
+	    
+	    void OnCallbackEvent(JobResult<JobOk, JobFail> r)
 	    {
-		    _testOutputHelper.WriteLine("${0} IsSuccess: {1}", r.Id, r.IsSuccess);
-		    Interlocked.Increment(ref countCall);
+		    if (r.Id != jobID) return;
+
+		    _testOutputHelper.WriteLine("${0} IsSuccess: {1} {2}", r.Id, r.IsSuccess, DateTime.Now.Ticks);
+		    countCall++;
 		    tcs.SetResult(r);
 		    tcs.TrySetCanceled();
-	    };
+	    }
+	    CronJobManager.CallbackEvent += OnCallbackEvent;
 
 
-	    CronJobManager.Register(
+	    jobID = CronJobManager.Register(
 		    action: async () =>
 		    {
 			    await Task.Delay(oneTimeJobMs);
@@ -76,6 +81,7 @@ public class DefaultJobManagerTests
 	    );
         
 	    var result = await tcs.Task;
+	    CronJobManager.CallbackEvent -= OnCallbackEvent;
 	    Assert.Null(result.GetFail());
 	    Assert.True(result.IsSuccess);
 	    Assert.Equal(1, countCall);

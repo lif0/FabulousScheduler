@@ -5,7 +5,6 @@ using FabulousScheduler.Cron.Enums;
 using FabulousScheduler.Cron.Interfaces;
 
 namespace Job.Core.Tests.Cron;
-
 public class JobManagerTests
 {
 	[Fact]
