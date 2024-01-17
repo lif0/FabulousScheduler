@@ -11,9 +11,8 @@
         <PackageProjectUrl>https://github.com/lif0/FabulousScheduler/</PackageProjectUrl>
         <PackageTags>scheduler cron-scheduler queue-scheduler advanced-cron-scheduler advanced-queue-scheduler cron-tweaks queue-tweaks fluent</PackageTags>
         <IsPackable>true</IsPackable>
-        <Version>1.0.1</Version>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PackageIcon>icon.png</PackageIcon>
+        <Version>1.0.0</Version>
     </PropertyGroup>
     
     <ItemGroup>
