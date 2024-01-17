@@ -9,6 +9,7 @@ env:
   PROJECT_PATH: 'src'
   PACKAGE_OUTPUT_DIRECTORY: ${{ github.workspace }}/output
   NUGET_SOURCE_URL: 'https://api.nuget.org/v3/index.json'
+  ASSEMBLY_VERSION: 2.0.0
 
 jobs:
   deploy:
@@ -16,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        dotnet-version: [ '5.x.x' ]
+        dotnet-version: [ '6.x.x' ]
 
     steps:
       - name: Checkout
@@ -38,7 +39,7 @@ jobs:
         uses: battila7/get-version-action@v2
         
       - name: Build project
-        run: dotnet build ${{ env.PROJECT_PATH }} --no-restore --configuration Release  -p:AssemblyVersion=${{ steps.version.outputs.version-without-v }}        
+        run: dotnet build ${{ env.PROJECT_PATH }} --no-restore --configuration Release  -p:AssemblyVersion=${{ vars.ASSEMBLY_VERSION }}        
 
       - name: Pack project
         run: dotnet pack ${{ env.PROJECT_PATH }} --no-restore --no-build --configuration Release -p:PackageVersion=${{ steps.version.outputs.version-without-v }} --output ${{ env.PACKAGE_OUTPUT_DIRECTORY }}
