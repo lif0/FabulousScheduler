@@ -6,7 +6,7 @@
         <Nullable>enable</Nullable>
         <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
         <PackageId>FabulousScheduler.Queue</PackageId>
-        <Authors>Kadi Gasanguseynov</Authors>
+        <Authors>lif0</Authors>
         <Description>Write your self queue scheduler</Description>
         <RepositoryUrl>https://github.com/lif0/FabulousScheduler/</RepositoryUrl>
         <PackageProjectUrl>https://github.com/lif0/FabulousScheduler/</PackageProjectUrl>

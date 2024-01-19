@@ -5,7 +5,7 @@
         <Nullable>enable</Nullable>
         <TargetFrameworks>net6.0;net7.0;net8.0</TargetFrameworks>
         <PackageId>FabulousScheduler.Cron</PackageId>
-        <Authors>Kadi Gasanguseynov</Authors>
+        <Authors>lif0</Authors>
         <Description>Write your self cron scheduler</Description>
         <RepositoryUrl>https://github.com/lif0/FabulousScheduler/</RepositoryUrl>
         <PackageProjectUrl>https://github.com/lif0/FabulousScheduler/</PackageProjectUrl>

@@ -2,12 +2,18 @@ using FabulousScheduler.Core.Interfaces.Result;
 
 namespace FabulousScheduler.Cron.Result;
 
+/// <summary>
+///  <inheritdoc cref="IJobOk"/>
+/// </summary>
 public class JobOk : IJobOk
 {
-    public Guid ID { get; }
-
-    public JobOk(Guid jobId)
+    public JobOk(Guid jobID)
     {
-        ID = jobId;
+        ID = jobID;
     }
+    
+    /// <summary>
+    /// <inheritdoc/>
+    /// </summary>
+    public Guid ID { get; }
 }

@@ -24,10 +24,10 @@ internal class CronJobRandomResult : BaseCronJob
 
 		if (Random.Shared.Next(1, 10) % 2 == 0)
 		{
-			return new JobOk(this.Id);
+			return new JobOk(this.ID);
 		}
 
-		return new JobFail(this.Id, CronJobFailEnum.FailedExecute, "test error", null);
+		return new JobFail(this.ID, CronJobFailEnum.FailedExecute, "test error", null);
 	}
 }
 
@@ -43,7 +43,7 @@ internal class CronJobOkResult : BaseCronJob
 	protected override async Task<JobResult<JobOk, JobFail>> ActionJob()
 	{
 		await Task.Delay(JobSimulateWorkTime);
-		return new JobOk(this.Id);
+		return new JobOk(this.ID);
 	}
 
 }
@@ -60,7 +60,7 @@ internal class CronJobFailedExecuteResult : BaseCronJob
 	protected override async Task<JobResult<JobOk, JobFail>> ActionJob()
 	{
 		await Task.Delay(JobSimulateWorkTime);
-		return new JobFail(this.Id, CronJobFailEnum.FailedExecute, "test error", null);
+		return new JobFail(this.ID, CronJobFailEnum.FailedExecute, "test error", null);
 	}
 
 	
@@ -85,9 +85,9 @@ internal class CronJobInternalExceptionResult : BaseCronJob
 
 
 
-internal class CronJobManagerManualRecheck : BaseCronJobManager
+internal class CronJobSchedulerManualRecheck : BaseCronJobScheduler
 {
-	public CronJobManagerManualRecheck(Config? config) : base(config)
+	public CronJobSchedulerManualRecheck(Config? config) : base(config)
 	{
 		
 	}

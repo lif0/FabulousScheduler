@@ -18,7 +18,7 @@ public class BaseQueueJob : IQueueJob
 
 	#region Info
 
-	public Guid Id { get; }
+	public Guid ID { get; }
 	public string Name { get; }
 	public QueueJobStateEnum State { get; private set; }
 
@@ -41,7 +41,7 @@ public class BaseQueueJob : IQueueJob
 
 	protected BaseQueueJob(string name)
 	{
-		Id = Guid.NewGuid();
+		ID = Guid.NewGuid();
 		Name = name;
 	}
 
@@ -51,12 +51,12 @@ public class BaseQueueJob : IQueueJob
 	{
 		if (_disposed)
 		{
-			return new JobFail(Id, Name, QueueJobFailEnum.Disposed, $"The job {Name} was disposed", null);
+			return new JobFail(ID, Name, QueueJobFailEnum.Disposed, $"The job {Name} was disposed", null);
 		}
 
 		if (ActionJob == null)
 		{
-			return new JobFail(Id, Name, QueueJobFailEnum.InternalException, $"ActionJob not initialized.", null);
+			return new JobFail(ID, Name, QueueJobFailEnum.InternalException, $"ActionJob not initialized.", null);
 		}
 		
 		lock (_lock)
@@ -64,7 +64,7 @@ public class BaseQueueJob : IQueueJob
 			if (State is QueueJobStateEnum.Running)
 			{
 				string msg = $"Incorrect state run the job. Job {Name} current state: {State}";
-				return new JobFail(Id, Name, QueueJobFailEnum.IncorrectState, msg, null);
+				return new JobFail(ID, Name, QueueJobFailEnum.IncorrectState, msg, null);
 			}
 
 			State = QueueJobStateEnum.Running;
@@ -86,7 +86,7 @@ public class BaseQueueJob : IQueueJob
 		}
 		catch (Exception e)
 		{
-			return new JobFail(Id, Name, QueueJobFailEnum.InternalException, e.Message, e);
+			return new JobFail(ID, Name, QueueJobFailEnum.InternalException, e.Message, e);
 		}
 		finally
 		{

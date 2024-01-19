@@ -6,7 +6,7 @@ using FabulousScheduler.Cron.Result;
 
 namespace FabulousScheduler.Cron.Abstraction;
 
-public abstract class BaseCronJobManager : ICronJobManager
+public abstract class BaseCronJobScheduler : ICronJobScheduler
 {
 	private readonly object _lock;
 	private readonly SemaphoreSlim _jobParallelPool;
@@ -14,7 +14,7 @@ public abstract class BaseCronJobManager : ICronJobManager
 	protected readonly Config Config;
 	protected readonly ConcurrentDictionary<Guid, ICronJob> Jobs;
 
-	protected BaseCronJobManager(Config? config)
+	protected BaseCronJobScheduler(Config? config)
 	{
 		Config = config ?? Config.Default;
 
@@ -30,7 +30,7 @@ public abstract class BaseCronJobManager : ICronJobManager
 	/// <returns>true - if job is registered, otherwise false</returns>
 	protected bool Register(ICronJob job)
 	{
-		return Jobs.TryAdd(job.Id, job);
+		return Jobs.TryAdd(job.ID, job);
 	}
 
 	/// <summary>
@@ -43,7 +43,7 @@ public abstract class BaseCronJobManager : ICronJobManager
 		int fail = 0;
 		foreach (var job in jobs)
 		{
-			if (!this.Jobs.TryAdd(job.Id, job))
+			if (!this.Jobs.TryAdd(job.ID, job))
 			{
 				fail++;
 			}
@@ -104,15 +104,14 @@ public abstract class BaseCronJobManager : ICronJobManager
 				}, 
 				job,
 				CancellationToken.None,
-				TaskCreationOptions.DenyChildAttach | TaskCreationOptions.PreferFairness,
+				TaskCreationOptions.DenyChildAttach,
 				TaskScheduler.Default);
 			
 			i++;
 		}
 
-		//Task.WaitAll(tasks);
 		await Task.WhenAll(tasks);
-		
+
 		return tasks.Select(x => x.Result).ToArray();
 	}
 
