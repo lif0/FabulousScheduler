@@ -5,7 +5,7 @@ using FabulousScheduler.Queue.Result;
 
 namespace FabulousScheduler.Queue.Abstraction;
 
-public abstract class BaseQueueJobManager : IQueueJobManager
+public abstract class BaseQueueJobScheduler : IQueueJobScheduler
 {
 	#region Default
 
@@ -42,7 +42,7 @@ public abstract class BaseQueueJobManager : IQueueJobManager
 
 	#endregion
 
-	public BaseQueueJobManager(IQueue queue, Config? config = null)
+	public BaseQueueJobScheduler(IQueue queue, Config? config = null)
 	{
 		_cancellationToken = new CancellationTokenSource();
 
@@ -152,14 +152,14 @@ public abstract class BaseQueueJobManager : IQueueJobManager
 			}
 
 			var res = await @job.ExecuteAsync();
-			if (JobInProgress.TryRemove(@job.Id, out var tup))
+			if (JobInProgress.TryRemove(@job.ID, out var tup))
 			{
 				JobResultEvent?.Invoke(tup.Item1, res);
 			}
 			_jobLimiter.Release();
 		}, job, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default);
 
-		JobInProgress.TryAdd(job.Id, (job, task));
+		JobInProgress.TryAdd(job.ID, (job, task));
 	}
 
 	#endregion

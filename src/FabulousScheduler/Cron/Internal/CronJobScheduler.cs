@@ -8,12 +8,12 @@ namespace FabulousScheduler.Cron.Internal;
 /// </summary>
 [SuppressMessage("ReSharper", "RedundantBaseQualifier")]
 [SuppressMessage("ReSharper", "NotAccessedField.Local")]
-internal sealed class CronJobManager : BaseCronJobManager
+internal sealed class CronJobScheduler : BaseCronJobScheduler
 {
     internal event Cron.CronJobManager.CallbackHandler? CallbackHandler;
     private Task _loop;
     
-    internal CronJobManager(Config? config) : base(config)
+    internal CronJobScheduler(Config? config) : base(config)
     {
         _loop = Task.Factory.StartNew(InfLoop,
             CancellationToken.None,
@@ -29,7 +29,7 @@ internal sealed class CronJobManager : BaseCronJobManager
     {
         CronJob job = new (action, sleepDuration);
         base.Register(job);
-        return job.Id;
+        return job.ID;
     }
     
     
@@ -43,7 +43,7 @@ internal sealed class CronJobManager : BaseCronJobManager
     {
         CronJob job = new (action, name, sleepDuration);
         base.Register(job);
-        return job.Id;
+        return job.ID;
     }
 
     /// <summary>
@@ -57,7 +57,7 @@ internal sealed class CronJobManager : BaseCronJobManager
     {
         CronJob job = new(action, name: name, category, sleepDuration);
         base.Register(job);
-        return job.Id;
+        return job.ID;
     }
 
     /// <summary>

@@ -1,10 +1,11 @@
 using System.Diagnostics.CodeAnalysis;
+using FabulousScheduler.Core.Interfaces;
 using FabulousScheduler.Core.Interfaces.Result;
 
 namespace FabulousScheduler.Queue.Result;
 
 /// <summary>
-/// The result of successful completion of a job
+///  <inheritdoc cref="IJobOk"/>
 /// </summary>
 [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
 public class JobOk : IJobOk
@@ -16,12 +17,12 @@ public class JobOk : IJobOk
 	}
 
 	/// <summary>
-	/// Job's ID
+	/// <inheritdoc/>
 	/// </summary>
 	public Guid ID { get; }
 	
 	/// <summary>
-	/// Job's Name
+	/// <inheritdoc cref="IJob.ID"/>
 	/// </summary>
 	public string Name { get; }
 }

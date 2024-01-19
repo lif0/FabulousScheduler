@@ -28,9 +28,9 @@ public class DefaultJobManagerTests
         
         void OnCallbackEvent(JobResult<JobOk, JobFail> r)
         {
-	        if (r.Id != jobID) return;
+	        if (r.ID != jobID) return;
 
-	        _testOutputHelper.WriteLine("${0} IsFail: {1} {2}", r.Id, r.IsFail, DateTime.Now.Ticks);
+	        _testOutputHelper.WriteLine("${0} IsFail: {1} {2}", r.ID, r.IsFail, DateTime.Now.Ticks);
 	        Interlocked.Increment(ref countCall);
 	        tcs.SetResult(r);
 	        tcs.TrySetCanceled();
@@ -63,9 +63,9 @@ public class DefaultJobManagerTests
 	    
 	    void OnCallbackEvent(JobResult<JobOk, JobFail> r)
 	    {
-		    if (r.Id != jobID) return;
+		    if (r.ID != jobID) return;
 
-		    _testOutputHelper.WriteLine("${0} IsSuccess: {1} {2}", r.Id, r.IsSuccess, DateTime.Now.Ticks);
+		    _testOutputHelper.WriteLine("${0} IsSuccess: {1} {2}", r.ID, r.IsSuccess, DateTime.Now.Ticks);
 		    countCall++;
 		    tcs.SetResult(r);
 		    tcs.TrySetCanceled();

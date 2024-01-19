@@ -24,10 +24,10 @@ public class QueueRandomJob : BaseQueueJob
 
 		if (val % 2 == 0)
 		{
-			return new JobOk(Id, Name);
+			return new JobOk(this.ID, Name);
 		}
 
-		return new JobFail(Id, Name,QueueJobFailEnum.InternalException, "lol", null);
+		return new JobFail(this.ID, Name,QueueJobFailEnum.InternalException, "lol", null);
 	}
 }
 
@@ -44,7 +44,7 @@ public class QueueJobFailResult : BaseQueueJob
 	private async Task<JobResult<JobOk, JobFail>> SomeLogic()
 	{
 		await Task.Delay(JobSimulateWorkTime);
-		return new JobFail(Id, Name, QueueJobFailEnum.InternalException, "lol", null);
+		return new JobFail(this.ID, Name, QueueJobFailEnum.InternalException, "lol", null);
 	}
 
 	
@@ -63,7 +63,7 @@ public class QueueJobOkResult : BaseQueueJob
 	private async Task<JobResult<JobOk, JobFail>> SomeLogic()
 	{
 		await Task.Delay(JobSimulateWorkTime);
-		return new JobOk(Id, Name);
+		return new JobOk(this.ID, Name);
 	}
 
 	
@@ -87,9 +87,9 @@ public class QueueJobFailExceptionResult : BaseQueueJob
 
 }
 
-public class TestQueueJobManager : BaseQueueJobManager
+public class TestQueueJobScheduler : BaseQueueJobScheduler
 {
-	public TestQueueJobManager(IQueue queue, Config? config = null) : base(queue, config)
+	public TestQueueJobScheduler(IQueue queue, Config? config = null) : base(queue, config)
 	{
 		
 	}
@@ -111,11 +111,11 @@ public class TestQueueJobManager : BaseQueueJobManager
 
 }
 
-public class TestQueueReAddFailJobManager : BaseQueueJobManager
+public class TestQueueReAddFailJobScheduler : BaseQueueJobScheduler
 {
 
 	public int AttepmentAfterFail { get; }
-	public TestQueueReAddFailJobManager(IQueue queue, Config? config = null, int attepmentAfterFail=1) : base(queue, config)
+	public TestQueueReAddFailJobScheduler(IQueue queue, Config? config = null, int attepmentAfterFail=1) : base(queue, config)
 	{
 		AttepmentAfterFail = attepmentAfterFail;
 		base.JobResultEvent += OnJobResultEvent;

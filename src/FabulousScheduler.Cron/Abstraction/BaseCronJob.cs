@@ -20,26 +20,24 @@ public abstract class BaseCronJob : ICronJob
 
 	#region Info
 
-	
 	public string Name { get; }
 	public string Category { get; }
+	public TimeSpan SleepDuration { get; }
 
 	public CronJobStateEnum State
 	{
 		get
 		{
-			TryWakeUpJob();
+			UpdateState();
 			return _state;
 		}
 	}
-
-	public TimeSpan SleepDuration { get; }
 
 	#endregion
 
 	#region Data
 
-	public Guid Id { get; }
+	public Guid ID { get; }
 	public DateTime? LastExecute { get; private set; }
 	public DateTime? LastSuccessExecute { get; private set; }
 	
@@ -50,7 +48,7 @@ public abstract class BaseCronJob : ICronJob
 	
 	protected BaseCronJob(string name,  string category, TimeSpan sleepDuration)
 	{
-		Id = Guid.NewGuid();
+		ID = Guid.NewGuid();
 		Name = name;
 		Category = category;
 		this._state = CronJobStateEnum.Ready;
@@ -74,13 +72,13 @@ public abstract class BaseCronJob : ICronJob
 			if (_disposed)
 			{
 				_state = CronJobStateEnum.Disposed;
-				return new JobFail(this.Id, CronJobFailEnum.Disposed, $"The job {Name} was disposed", null);
+				return new JobFail(this.ID, CronJobFailEnum.Disposed, $"The job {Name} was disposed", null);
 			}
 			
 			if (_state is not (CronJobStateEnum.Ready or CronJobStateEnum.Waiting))
 			{
 				string msg = $"Incorrect state run the job. Job {Name} current state: {State}";
-				return new JobFail(this.Id, CronJobFailEnum.IncorrectState, msg, null);
+				return new JobFail(this.ID, CronJobFailEnum.IncorrectState, msg, null);
 			}
 
 			_state = CronJobStateEnum.Running;
@@ -108,7 +106,7 @@ public abstract class BaseCronJob : ICronJob
 		catch (Exception e)
 		{
 			Interlocked.Increment(ref _totalFail);
-			return new JobFail(this.Id,CronJobFailEnum.InternalException, e.Message, e);
+			return new JobFail(this.ID,CronJobFailEnum.InternalException, e.Message, e);
 		}
 		finally
 		{
@@ -142,7 +140,7 @@ public abstract class BaseCronJob : ICronJob
 
 	#region Private methods
 
-	private void TryWakeUpJob()
+	private void UpdateState()
 	{
 		if(_state is not CronJobStateEnum.Sleeping) return;
 

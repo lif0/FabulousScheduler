@@ -6,7 +6,7 @@ namespace FabulousScheduler.Cron;
 public static class CronJobManager
 {
 #pragma warning disable CS8618
-    private static Internal.CronJobManager _manager;
+    private static Internal.CronJobScheduler _scheduler;
 #pragma warning restore CS8618
     
     public delegate void CallbackHandler(JobResult<JobOk, JobFail> e);
@@ -79,25 +79,25 @@ public static class CronJobManager
         {
             case (null, null):
             {
-                return _manager.RegisterCron(action, sleepDuration);
+                return _scheduler.RegisterCron(action, sleepDuration);
             } 
             case (not null, null):
             {
-                return _manager.RegisterCron(action, name, sleepDuration);
+                return _scheduler.RegisterCron(action, name, sleepDuration);
             }
             case (not null, not null):
             {
-                return _manager.RegisterCron(action, name, category, sleepDuration);
+                return _scheduler.RegisterCron(action, name, category, sleepDuration);
             }
             default:
-                return _manager.RegisterCron(action, sleepDuration);
+                return _scheduler.RegisterCron(action, sleepDuration);
         }
     }
     
     private static void InternalInit(Config? config = null)
     {
-        _manager = new(config ?? Config.Default);
-        _manager.CallbackHandler += result => CallbackEvent?.Invoke(result);
+        _scheduler = new(config ?? Config.Default);
+        _scheduler.CallbackHandler += result => CallbackEvent?.Invoke(result);
     }
 
     #endregion

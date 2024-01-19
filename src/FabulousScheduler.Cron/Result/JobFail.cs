@@ -1,30 +1,41 @@
 using System.Diagnostics.CodeAnalysis;
+using FabulousScheduler.Core.Interfaces;
 using FabulousScheduler.Core.Interfaces.Result;
 using FabulousScheduler.Cron.Enums;
 
 namespace FabulousScheduler.Cron.Result;
 
 /// <summary>
-/// The result of successful completion of a job
+/// <inheritdoc cref="IJobFail"/>
 /// </summary>
 [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
 public class JobFail : IJobFail
 {
-	public Guid Id { get; }
-	
-	public JobFail(Guid jobId, CronJobFailEnum reason, string message, Exception? exception)
+	public JobFail(Guid jobID, CronJobFailEnum reason, string message, Exception? exception)
 	{
-		Id = jobId;
+		ID = jobID;
 		Reason = reason;
 		Message = message;
-
 		Exception = exception;
-		
 	}
+	
+	/// <summary>
+	/// <inheritdoc/>
+	/// </summary>
+	public Guid ID { get; }
 
-	public CronJobFailEnum Reason { get; }
-	
+	/// <summary>
+	/// Message
+	/// </summary>
 	public string Message { get; }
-	
+
+	/// <summary>
+	/// <inheritdoc cref="CronJobFailEnum"/>
+	/// </summary>
+	public CronJobFailEnum Reason { get; }
+
+	/// <summary>
+	/// Exception
+	/// </summary>
 	public Exception? Exception { get; }
 }
