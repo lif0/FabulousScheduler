@@ -3,15 +3,15 @@
 <h2 align="center">✨High performance cron & queue scheduler✨</h2>
 <h3 align="center">🌪️Currently a WIP and in Active development.</h3>
 
-
-
-<!--![build](https://github.com/lif0/FabulousScheduler/actions/workflows/github-actions-build.yml/badge.svg) ![tests](https://github.com/lif0/FabulousScheduler/actions/workflows/github-actions-build.yml/badge.svg) -->
-![build](https://github.com/lif0/FabulousScheduler/actions/workflows/github-actions-build.yml/badge.svg) ![tests](https://github.com/lif0/FabulousScheduler/actions/workflows/github-actions-tests.yml/badge.svg) ![publish](https://github.com/lif0/FabulousScheduler/actions/workflows/github-actions-push-nuget.yml/badge.svg) [![NuGet](https://img.shields.io/nuget/v/FabulousScheduler.svg)](https://www.nuget.org/packages/FabulousScheduler) [![Downloads](https://img.shields.io/nuget/dt/FabulousScheduler.svg)](https://www.nuget.org/packages/FabulousScheduler) [![license](https://img.shields.io/github/license/lif0/FabulousScheduler.svg)](https://github.com/lif0/FabulousScheduler/blob/main/LICENSE)
-<!--[![build](https://github.com/lif0/FabulousScheduler/workflows/build/badge.svg?branch=main)](https://github.com/lif0/FabulousScheduler/actions?query=branch%3Amain) -->
+![build](https://github.com/lif0/FabulousScheduler/actions/workflows/github-actions-build.yml/badge.svg?branch=main)
+![tests](https://github.com/lif0/FabulousScheduler/actions/workflows/github-actions-tests.yml/badge.svg)
+![publish](https://github.com/lif0/FabulousScheduler/actions/workflows/github-actions-push-nuget.yml/badge.svg)
+[![nuget](https://img.shields.io/nuget/v/FabulousScheduler?style=flat&logo=nuget)](https://www.nuget.org/packages/FabulousScheduler)
+[![downloads](https://img.shields.io/nuget/dt/FabulousScheduler?style=flat&logo=nuget)](https://www.nuget.org/packages/FabulousScheduler)
+[![license](https://img.shields.io/github/license/lif0/FabulousScheduler.svg?style=flat&logo=github)](https://github.com/lif0/FabulousScheduler/blob/main/LICENSE)
 
 <h>If you have feature request feel free to open an [Issue](https://github.com/lif0/FabulousScheduler/issues/new/choose)</h4>
 </div>
-
 <br />
 
 ## 📖 Contents
