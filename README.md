@@ -6,9 +6,9 @@
 ![build](https://github.com/lif0/FabulousScheduler/actions/workflows/github-actions-build.yml/badge.svg?branch=main)
 ![tests](https://github.com/lif0/FabulousScheduler/actions/workflows/github-actions-tests.yml/badge.svg)
 ![publish](https://github.com/lif0/FabulousScheduler/actions/workflows/github-actions-push-nuget.yml/badge.svg)
-[![nuget](https://img.shields.io/nuget/v/FabulousScheduler?style=flat&logo=nuget)](https://www.nuget.org/packages/FabulousScheduler)
-[![downloads](https://img.shields.io/nuget/dt/FabulousScheduler?style=flat&logo=nuget)](https://www.nuget.org/packages/FabulousScheduler)
-[![license](https://img.shields.io/github/license/lif0/FabulousScheduler.svg?style=flat&logo=github)](https://github.com/lif0/FabulousScheduler/blob/main/LICENSE)
+[![nuget](https://img.shields.io/nuget/v/FabulousScheduler?logo=nuget&labelColor=rgb(64%2C70%2C78))](https://www.nuget.org/packages/FabulousScheduler)
+[![downloads](https://img.shields.io/nuget/dt/FabulousScheduler?style=flat&logo=nuget&labelColor=rgb(64%2C70%2C78))](https://www.nuget.org/packages/FabulousScheduler)
+[![license](https://img.shields.io/github/license/lif0/FabulousScheduler.svg?style=flat&logo=github&labelColor=rgb(64%2C70%2C78))](https://github.com/lif0/FabulousScheduler/blob/main/LICENSE)
 
 <h>If you have feature request feel free to open an [Issue](https://github.com/lif0/FabulousScheduler/issues/new/choose)</h4>
 </div>
