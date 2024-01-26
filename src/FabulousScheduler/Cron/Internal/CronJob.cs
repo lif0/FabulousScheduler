@@ -35,13 +35,9 @@ internal sealed class CronJob : BaseCronJob
         }
         catch (Exception e)
         {
-            // return Task.FromResult<JobResult<JobOk, JobFail>>(
-            //     new JobFail(this.Id, CronJobFailEnum.InternalException, e.Message, e)
-            // );
             return new JobFail(this.ID, CronJobFailEnum.InternalException, e.Message, e);
         }
 
-        //return Task.FromResult<JobResult<JobOk, JobFail>>();
         return new JobOk(this.ID);
     }
 }

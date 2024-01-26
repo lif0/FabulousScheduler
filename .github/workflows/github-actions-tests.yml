@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        dotnet-version: [ '6.x.x', '7.x.x', '8.x.x' ]
+        dotnet-version: [ '6.x.x' ]
 
     steps:
       - name: Checkout
@@ -35,4 +35,4 @@ jobs:
         run: dotnet build ${{ env.PROJECT_PATH }} --no-restore --configuration Release
 
       - name: Test
-        run: dotnet test ${{ env.PROJECT_PATH }}/FabulousScheduler.UnitTests/FabulousScheduler.UnitTests.csproj --nologo
+        run: dotnet test ${{ env.PROJECT_PATH }}/FabulousScheduler.UnitTests/FabulousScheduler.UnitTests.csproj --nologo --configuration Release

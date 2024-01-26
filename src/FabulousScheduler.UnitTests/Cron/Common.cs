@@ -9,6 +9,28 @@ using FabulousScheduler.Cron.Result;
 
 namespace Job.Core.Tests.Cron;
 
+internal static class Helper
+{
+	public static double GuessDurationInMilleseconds(int countJobs, int parallelCount, double oneJobExecutionInMilliseconds)
+	{
+		parallelCount = (countJobs >= parallelCount ? parallelCount : 1);
+
+		return (countJobs / parallelCount) * oneJobExecutionInMilliseconds;
+	}
+
+	public static async Task Sleep(CancellationToken cancellationToken)
+	{
+		try
+		{
+			await Task.Delay(-1, cancellationToken);
+		}
+		catch (Exception)
+		{
+			// ignored
+		}
+	}
+}
+
 internal class CronJobRandomResult : BaseCronJob
 {
 	public TimeSpan JobSimulateWorkTime { get; }
@@ -83,18 +105,10 @@ internal class CronJobInternalExceptionResult : BaseCronJob
 
 }
 
-
-
-internal class CronJobSchedulerManualRecheck : BaseCronJobScheduler
+internal class TestCronJobScheduler : BaseCronJobScheduler
 {
-	public CronJobSchedulerManualRecheck(Config? config) : base(config)
+	public TestCronJobScheduler(Config? config) : base(config)
 	{
-		
-	}
-	
-	public Task<JobResult<JobOk, JobFail>[]> RecheckJobs()
-	{
-		return ExecuteReadyJob();
 	}
 
 	public new bool Register(ICronJob job)

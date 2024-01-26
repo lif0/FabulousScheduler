@@ -8,9 +8,5 @@ namespace FabulousScheduler.Core.Interfaces;
 /// </summary>
 public interface IJobScheduler
 {
-    /// <summary>
-    /// Callback delegate, that will be call every time when any job will completed
-    /// </summary>
-    /// <param name="eResult">Job result</param>
-    //protected delegate void CallbackHandler(JobResult<IJobOk, IJobFail> eResult);
+    
 }

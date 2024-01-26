@@ -1,8 +1,11 @@
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using FabulousScheduler.Cron;
-using FabulousScheduler.Cron.Enums;
 using FabulousScheduler.Cron.Interfaces;
+using FabulousScheduler.Cron.Result;
+using System.Collections.Concurrent;
+using FabulousScheduler.Cron.Enums;
+using FabulousScheduler.Core.Types;
+using FabulousScheduler.Cron;
+using System.Diagnostics;
+
 
 namespace Job.Core.Tests.Cron;
 public class JobManagerTests
@@ -10,17 +13,31 @@ public class JobManagerTests
 	[Fact]
 	public async void Time_FailOne()
 	{
-		const int oneTimeJobMs = 100;
-	
-		var manager = new CronJobSchedulerManualRecheck(new Config(1, TimeSpan.MaxValue));
-		var job = new Job_Fail("okFail", TimeSpan.Zero, TimeSpan.FromMilliseconds(oneTimeJobMs));
+		const int oneTimeJobMs = 50;
+		
+		// helper
+		int countCall = 0;
+		TaskCompletionSource tcs = new();
+		Stopwatch sw = new Stopwatch();
+
+		// init
+		var config = new Config( maxParallelJobExecute: 1, sleepAfterCheck: TimeSpan.FromHours(1));
+		var manager = new TestCronJobScheduler(config);
+		manager.JobResultEvent += (ref ICronJob _, ref JobResult<JobOk, JobFail> _) =>
+		{
+			sw.Stop();
+			Interlocked.Increment(ref countCall);
+			tcs.SetResult();
+		};
+		
+		// test
+		var job = new Job_Fail("okFail", sleepDuration: TimeSpan.Zero, jobSimulateWorkTime: TimeSpan.FromMilliseconds(oneTimeJobMs));
 		manager.Register(job);
-	
-		var sw = Stopwatch.StartNew();
-		var results = await manager.RecheckJobs();
-		sw.Stop();
-	
-		Assert.Single(results);
+		sw.Start();
+
+		await tcs.Task;
+		
+		Assert.Equal(1, countCall);
 		Assert.Equal(oneTimeJobMs,sw.Elapsed.TotalMilliseconds, 10.0f);
 		
 		Assert.Equal(1, job.TotalRun);
@@ -29,204 +46,239 @@ public class JobManagerTests
 		Assert.NotNull(job.LastExecute);
 		Assert.Equal(CronJobStateEnum.Ready, job.State);
 	}
-
+	
 	[Fact]
 	public async void Time_SuccessOne()
 	{
-		const int oneTimeJobMs = 100;
-	
-		var manager = new CronJobSchedulerManualRecheck(new Config(1, TimeSpan.MaxValue));
-		var job = new Job_Ok("okJob", TimeSpan.Zero, TimeSpan.FromMilliseconds(oneTimeJobMs));
+		const int oneTimeJobMs = 50;
+		
+		// helper
+		int countCall = 0;
+		TaskCompletionSource tcs = new();
+		Stopwatch sw = new Stopwatch();
+
+		// init
+		var config = new Config( maxParallelJobExecute: 1, sleepAfterCheck: TimeSpan.FromHours(1));
+		var manager = new TestCronJobScheduler(config);
+		manager.JobResultEvent += (ref ICronJob _, ref JobResult<JobOk, JobFail> _) =>
+		{
+			sw.Stop();
+			Interlocked.Increment(ref countCall);
+			tcs.SetResult();
+		};
+		
+		// test
+		var job = new Job_Ok("okJob", sleepDuration: TimeSpan.Zero, jobSimulateWorkTime: TimeSpan.FromMilliseconds(oneTimeJobMs));
 		manager.Register(job);
-	
-		var sw = Stopwatch.StartNew();
-		await manager.RecheckJobs();
-		sw.Stop();
-	
+		sw.Start();
+
+		await tcs.Task;
+		
+		Assert.Equal(1, countCall);
 		Assert.Equal(oneTimeJobMs,sw.Elapsed.TotalMilliseconds, 10.0f);
 		
-		Assert.NotNull(job.LastSuccessExecute);
-		Assert.NotNull(job.LastExecute);
 		Assert.Equal(1, job.TotalRun);
 		Assert.Equal(0, job.TotalFail);
+		Assert.NotNull(job.LastSuccessExecute);
+		Assert.NotNull(job.LastExecute);
 		Assert.Equal(CronJobStateEnum.Ready, job.State);
 	}
-
+	
 	[Fact]
-	[SuppressMessage("ReSharper", "PossibleLossOfFraction")]
 	public async void Time_1k()
 	{
-		int countJobs = 1000, oneTimeJobMs = 20, parallelJobs = 10;
-		var manager = new CronJobSchedulerManualRecheck(new Config(parallelJobs, TimeSpan.MaxValue));
+		int countJobs = 1000, oneTimeJobMs = 20, parallelJobs = Environment.ProcessorCount*5;
+		
+		// helper
+		var hash = new ConcurrentDictionary<Guid, byte>();
+		TaskCompletionSource tcs = new();
+		Stopwatch sw = new Stopwatch();
 
+		// init
+		var config = new Config( maxParallelJobExecute: parallelJobs, sleepAfterCheck: TimeSpan.FromMilliseconds(50));
+		var manager = new TestCronJobScheduler(config);
+		manager.JobResultEvent += (ref ICronJob _, ref JobResult<JobOk, JobFail> e) =>
+		{
+			hash.AddOrUpdate(e.ID, _ => 1, (_, b) => ++b);
+
+			if (hash.Count == countJobs)
+			{
+				sw.Stop();
+				tcs.SetResult();
+			}
+		};
+		
+		// test
+		var jobs = new List<Job_Random>(countJobs);
 		for (int i = 1; i <= countJobs; i++)
 		{
-			manager.Register(new Job_Random(i.ToString(), TimeSpan.MaxValue, TimeSpan.FromMilliseconds(oneTimeJobMs)));
+			jobs.Add(new Job_Random(i.ToString(), TimeSpan.MaxValue, TimeSpan.FromMilliseconds(oneTimeJobMs)));
 		}
+		manager.Register(jobs);
+		sw.Start();
 
-		var sw = Stopwatch.StartNew();
-		var results = await manager.RecheckJobs();
-		sw.Stop();
+		await tcs.Task;
+		long uniqCountCall = jobs.Count(x => x.TotalRun == 1);
+		long countCall = jobs.Sum(x => x.TotalRun);
+		double expectedWorkTimeSec = Helper.GuessDurationInMilleseconds(countJobs, parallelJobs, oneTimeJobMs);
 		
-		double expectedWorkTimeSec = countJobs / (countJobs >= parallelJobs ? parallelJobs : 1) *
-		                             (oneTimeJobMs / 1000.0 /*in sec*/);
-		Assert.Equal(expectedWorkTimeSec,sw.Elapsed.TotalSeconds,5f);
-		Assert.Equal(countJobs, results.Length);
+		Assert.Equal(countCall, uniqCountCall);
+		Assert.Equal(countJobs, countCall);
+		Assert.Equal(expectedWorkTimeSec,sw.Elapsed.TotalMilliseconds,300f/*0.3 of sec*/);
 	}
-
+	
 	[Fact]
 	public async void Time_5k()
 	{
-		int countJobs = 5000, oneTimeJobMs = 6, parallelJobs = 20;
-		var manager = new CronJobSchedulerManualRecheck(new Config(parallelJobs, TimeSpan.MaxValue));
+		int countJobs = 5000, oneTimeJobMs = 20, parallelJobs = Environment.ProcessorCount*5;
 		
+		// helper
+		var hash = new ConcurrentDictionary<Guid, byte>();
+		TaskCompletionSource tcs = new();
+		Stopwatch sw = new Stopwatch();
+
+		// init
+		var config = new Config( maxParallelJobExecute: parallelJobs, sleepAfterCheck: TimeSpan.FromMilliseconds(50));
+		var manager = new TestCronJobScheduler(config);
+		manager.JobResultEvent += (ref ICronJob _, ref JobResult<JobOk, JobFail> e) =>
+		{
+			hash.AddOrUpdate(e.ID, _ => 1, (_, b) => ++b);
+
+			if (hash.Count == countJobs)
+			{
+				sw.Stop();
+				tcs.SetResult();
+			}
+		};
 		
+		// test
+		var jobs = new List<Job_Random>(countJobs);
 		for (int i = 1; i <= countJobs; i++)
 		{
-			manager.Register(new Job_Random(i.ToString(), TimeSpan.Zero, TimeSpan.FromMilliseconds(oneTimeJobMs)));
+			jobs.Add(new Job_Random(i.ToString(), TimeSpan.MaxValue, TimeSpan.FromMilliseconds(oneTimeJobMs)));
 		}
+		manager.Register(jobs);
+		sw.Start();
+
+		await tcs.Task;
+		long uniqCountCall = jobs.Count(x => x.TotalRun == 1);
+		long countCall = jobs.Sum(x => x.TotalRun);
+		double expectedWorkTimeSec = Helper.GuessDurationInMilleseconds(countJobs, parallelJobs, oneTimeJobMs);
 		
-		var sw = Stopwatch.StartNew();
-		await manager.RecheckJobs();
-		sw.Stop();
-		
-		
-		
-		// ReSharper disable once PossibleLossOfFraction
-		double expectedWorkTimeSec = countJobs / (countJobs >= parallelJobs ? parallelJobs : 1) * 
-		                             (oneTimeJobMs / 1000.0 /*in sec*/);
-		Assert.Equal(expectedWorkTimeSec, sw.Elapsed.TotalSeconds, 5f);
+		Assert.Equal(countCall, uniqCountCall);
+		Assert.Equal(countJobs, countCall);
+		Assert.Equal(expectedWorkTimeSec,sw.Elapsed.TotalMilliseconds,1000f/*1 sec*/);
 	}
 	
 	[Fact]
 	public async void Time_50k()
 	{
-		int countJobs = 50000, oneTimeJobMs = 5, parallelJobs = 100;
-		var manager = new CronJobSchedulerManualRecheck(new Config(parallelJobs, TimeSpan.MaxValue));
+		int countJobs = 50000, oneTimeJobMs = 5, parallelJobs = Environment.ProcessorCount*10;
 
+		// helper
+		var hash = new ConcurrentDictionary<Guid, byte>();
+		TaskCompletionSource tcs = new();
+		Stopwatch sw = new Stopwatch();
+
+		// init
+		var config = new Config( maxParallelJobExecute: parallelJobs, sleepAfterCheck: TimeSpan.FromMilliseconds(50));
+		var manager = new TestCronJobScheduler(config);
+		manager.JobResultEvent += (ref ICronJob _, ref JobResult<JobOk, JobFail> e) =>
+		{
+			hash.AddOrUpdate(e.ID, _ => 1, (_, b) => ++b);
+
+			if (hash.Count == countJobs)
+			{
+				sw.Stop();
+				tcs.SetResult();
+			}
+		};
+		
+		// test
+		var jobs = new List<Job_Random>(countJobs);
 		for (int i = 1; i <= countJobs; i++)
 		{
-			manager.Register(new Job_Random(i.ToString(), TimeSpan.Zero, TimeSpan.FromMilliseconds(oneTimeJobMs)));
+			jobs.Add(new Job_Random(i.ToString(), TimeSpan.MaxValue, TimeSpan.FromMilliseconds(oneTimeJobMs)));
 		}
-		
-		var sw = Stopwatch.StartNew();
-		await manager.RecheckJobs();
-		sw.Stop();
+		manager.Register(jobs);
+		sw.Start();
 
-		// ReSharper disable once PossibleLossOfFraction
-		double expectedWorkTimeSec = countJobs / (countJobs >= parallelJobs ? parallelJobs : 1) * 
-		                             (oneTimeJobMs / 1000.0 /*in sec*/);
-		Assert.Equal(expectedWorkTimeSec, sw.Elapsed.TotalSeconds, 5f);
+		await tcs.Task;
+		long uniqCountCall = jobs.Count(x => x.TotalRun == 1);
+		long countCall = jobs.Sum(x => x.TotalRun);
+		double expectedWorkTimeSec = Helper.GuessDurationInMilleseconds(countJobs, parallelJobs, oneTimeJobMs);
+		
+		Assert.Equal(countCall, uniqCountCall);
+		Assert.Equal(countJobs, countCall);
+		Assert.Equal(expectedWorkTimeSec,sw.Elapsed.TotalMilliseconds,1000f/*1 sec*/);
+	}
+
+	[Fact]
+	public async void Count_InSleepPeriod()
+	{
+		int countJobs = 1000, oneTimeJobMs = 5, parallelJobs = Environment.ProcessorCount*10;
+
+		// helper
+		var hash = new ConcurrentDictionary<Guid, byte>();
+		CancellationTokenSource cts = new();
+
+		// init
+		var config = new Config( maxParallelJobExecute: parallelJobs, sleepAfterCheck: TimeSpan.FromMilliseconds(10));
+		var manager = new TestCronJobScheduler(config);
+		manager.JobResultEvent += (ref ICronJob _, ref JobResult<JobOk, JobFail> e) =>
+		{
+			hash.AddOrUpdate(e.ID, _ => 1, (_, b) => ++b);
+		};
+
+		// test
+		var jobs = new List<Job_Ok>(countJobs);
+		for (int i = 1; i <= countJobs; i++)
+		{
+			jobs.Add(new Job_Ok(i.ToString(), TimeSpan.FromHours(1), TimeSpan.FromMilliseconds(oneTimeJobMs)));
+		}
+		manager.Register(jobs);
+		cts.CancelAfter(TimeSpan.FromSeconds(3));
+		await Helper.Sleep(cts.Token);
+		bool allHasLastExecute = jobs.TrueForAll(x => x.LastSuccessExecute.HasValue);
+		
+		Assert.Equal(countJobs, hash.Count);
+		Assert.Equal(countJobs, hash.Sum(x=> x.Value));
+		Assert.Equal(countJobs, jobs.Sum(x => x.TotalRun));
+		Assert.True(allHasLastExecute);
 	}
 	
 	[Fact]
-	public void Count_InSleepPeriod()
-	{
-		int countJobs = 10000, oneTimeJobMs = 1, parallelJobs = 10;
-		var manager = new CronJobSchedulerManualRecheck(new Config(parallelJobs, TimeSpan.MaxValue));
-
-		var jobs = new List<ICronJob>();
-		
-		for (int i = 1; i <= countJobs; i++)
-		{
-			var job = new Job_Ok(i.ToString(), TimeSpan.FromHours(1), TimeSpan.FromMilliseconds(oneTimeJobMs));
-			jobs.Add(job);
-			
-		}
-		manager.Register(jobs);
-		
-		Task.WaitAll(
-			manager.RecheckJobs(),
-			manager.RecheckJobs(),
-			manager.RecheckJobs(),
-			manager.RecheckJobs(),
-			manager.RecheckJobs()
-		);
-
-		double actual = jobs.Sum(x => x.TotalRun);
-		bool allHasLastExecute = jobs.TrueForAll(x => x.LastSuccessExecute.HasValue);
-		Assert.Equal(countJobs, actual);
-		Assert.True(allHasLastExecute);
-	}
-
-	[Fact]
 	public async void Count_OutSleepPeriod()
 	{
-		TimeSpan sleepDuration = TimeSpan.FromSeconds(1);
-		int countJobs = 10000, oneTimeJobMs = 1, parallelJobs = 10;
-		var manager = new CronJobSchedulerManualRecheck(new Config(parallelJobs, TimeSpan.MaxValue));
-
-		var jobs = new List<ICronJob>();
+		int countJobs = 1000, oneTimeJobMs = 5, sleepDurationSec = 1, parallelJobs = Environment.ProcessorCount*10;
 		
+		// helper
+		var hash = new ConcurrentDictionary<Guid, byte>();
+		CancellationTokenSource cts = new();
+
+		// init
+		var config = new Config( maxParallelJobExecute: parallelJobs, sleepAfterCheck: TimeSpan.FromMilliseconds(10));
+		var manager = new TestCronJobScheduler(config);
+		manager.JobResultEvent += (ref ICronJob _, ref JobResult<JobOk, JobFail> e) =>
+		{
+			hash.AddOrUpdate(e.ID, _ => 1, (_, b) => ++b);
+		};
+
+		// test
+		var jobs = new List<Job_Ok>(countJobs);
 		for (int i = 1; i <= countJobs; i++)
 		{
-			var job = new Job_Ok(i.ToString(), sleepDuration, TimeSpan.FromMilliseconds(oneTimeJobMs));
-			jobs.Add(job);
-			
+			jobs.Add(new Job_Ok(i.ToString(), TimeSpan.FromSeconds(sleepDurationSec), TimeSpan.FromMilliseconds(oneTimeJobMs)));
 		}
 		manager.Register(jobs);
-
-		Task.WaitAll(
-			manager.RecheckJobs(),
-			manager.RecheckJobs(),
-			manager.RecheckJobs(),
-			manager.RecheckJobs()
-		);
-		await Task.Delay(sleepDuration*2);
-		await manager.RecheckJobs();
-
-
-		double actual = jobs.Sum(x => x.TotalRun);
+		// ReSharper disable once UselessBinaryOperation
+		cts.CancelAfter(TimeSpan.FromSeconds(sleepDurationSec*2));
+		await Helper.Sleep(cts.Token);
 		bool allHasLastExecute = jobs.TrueForAll(x => x.LastSuccessExecute.HasValue);
-		Assert.Equal(countJobs*2, actual);
+		
+		Assert.Equal(countJobs, hash.Count);
+		Assert.Equal(countJobs*2, hash.Sum(x=> x.Value));
+		Assert.Equal(countJobs*2, jobs.Sum(x => x.TotalRun));
 		Assert.True(allHasLastExecute);
-	}
-
-	[Fact]
-	public void Count_JobTwoTimeInSleepTimePeriod()
-	{
-		const int oneTimeJobMs = 25;
-		var manager = new JobManager(new Config(10, TimeSpan.MaxValue));
-		var job = new Job_Ok("jobOk", TimeSpan.FromSeconds(10), TimeSpan.FromMilliseconds(oneTimeJobMs));
-		manager.Register(job);
-		
-		Task.WaitAll(
-			manager.RecheckJobs(),
-			manager.RecheckJobs(), 
-			manager.RecheckJobs(), 
-			manager.RecheckJobs(),
-			manager.RecheckJobs(),
-			manager.RecheckJobs(),
-			manager.RecheckJobs()
-		);
-		
-		
-
-		Assert.Equal(1, job.TotalRun);
-		Assert.Equal(0, job.TotalFail);
-	}
-
-	[Fact]
-	public async void Count_TwoTimeOutSleepTimePeriod()
-	{
-		const int oneTimeJobMs = 25;
-
-		var manager = new JobManager(new Config(10, TimeSpan.MaxValue));
-		var job = new Job_Ok("jobOk", TimeSpan.FromSeconds(2), TimeSpan.FromMilliseconds(oneTimeJobMs));
-		manager.Register(job);
-		
-		await manager.RecheckJobs();
-		await Task.Delay(2500);
-		Task.WaitAll(
-			manager.RecheckJobs(),
-			manager.RecheckJobs(),
-			manager.RecheckJobs(),
-			manager.RecheckJobs(),
-			manager.RecheckJobs()
-		);
-
-
-		Assert.Equal(2, job.TotalRun);
-		Assert.Equal(0, job.TotalFail);
 	}
 }

@@ -21,7 +21,7 @@ public abstract class BaseQueueJobScheduler : IQueueJobScheduler
 	
 	
 	private readonly object _lock;
-	private readonly SemaphoreSlim _jobLimiter;
+	private readonly SemaphoreSlim _jobParallelPool;
 	private readonly Config _config;
 
 	#endregion
@@ -47,7 +47,7 @@ public abstract class BaseQueueJobScheduler : IQueueJobScheduler
 		_cancellationToken = new CancellationTokenSource();
 
 		_config = config ?? new Config(DefaultMaxParallelJobExecute, DefaultSleepIfQueueIsEmpty);
-		_jobLimiter = new SemaphoreSlim(_config.MaxParallelJobExecute, _config.MaxParallelJobExecute);
+		_jobParallelPool = new SemaphoreSlim(_config.MaxParallelJobExecute, _config.MaxParallelJobExecute);
 		Queue = queue;
 		JobInProgress = new ConcurrentDictionary<Guid, (IQueueJob, Task)>(Environment.ProcessorCount, _config.MaxParallelJobExecute);
 		
@@ -77,7 +77,7 @@ public abstract class BaseQueueJobScheduler : IQueueJobScheduler
 					continue;
 				}
 
-				await _jobLimiter.WaitAsync(_cancellationToken.Token);
+				await _jobParallelPool.WaitAsync(_cancellationToken.Token);
 
 				lock (_lock)
 				{
@@ -120,7 +120,7 @@ public abstract class BaseQueueJobScheduler : IQueueJobScheduler
 		{
 			while (Queue.Count != 0)
 			{
-				await _jobLimiter.WaitAsync();
+				await _jobParallelPool.WaitAsync();
 				var job = Queue.TryDequeue();
 				if(job == null) continue;
 					
@@ -156,7 +156,7 @@ public abstract class BaseQueueJobScheduler : IQueueJobScheduler
 			{
 				JobResultEvent?.Invoke(tup.Item1, res);
 			}
-			_jobLimiter.Release();
+			_jobParallelPool.Release();
 		}, job, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default);
 
 		JobInProgress.TryAdd(job.ID, (job, task));

@@ -10,16 +10,8 @@ namespace FabulousScheduler.Cron.Internal;
 [SuppressMessage("ReSharper", "NotAccessedField.Local")]
 internal sealed class CronJobScheduler : BaseCronJobScheduler
 {
-    internal event Cron.CronJobManager.CallbackHandler? CallbackHandler;
-    private Task _loop;
-    
     internal CronJobScheduler(Config? config) : base(config)
     {
-        _loop = Task.Factory.StartNew(InfLoop,
-            CancellationToken.None,
-            TaskCreationOptions.LongRunning,
-            TaskScheduler.Default
-        );
     }
 
     /// <summary>
@@ -31,7 +23,6 @@ internal sealed class CronJobScheduler : BaseCronJobScheduler
         base.Register(job);
         return job.ID;
     }
-    
     
     /// <summary>
     /// Register a cron job
@@ -59,32 +50,4 @@ internal sealed class CronJobScheduler : BaseCronJobScheduler
         base.Register(job);
         return job.ID;
     }
-
-    /// <summary>
-    /// Recheck jobs every <see cref="Config.SleepAfterCheck"/> time
-    /// </summary>
-    private async void InfLoop()
-    {
-        while (true)
-        {
-            try
-            {
-                var res = await base.ExecuteReadyJob();
-                if (res is { Length: > 0 })
-                {
-                    Parallel.ForEach(res, jres =>
-                    {
-                        CallbackHandler?.Invoke(jres);
-                    });
-                }
-                await Task.Delay(base.Config.SleepAfterCheck);
-            }
-            catch (Exception)
-            {
-                // ignored
-            }
-        }
-        // ReSharper disable once FunctionNeverReturns
-    }
-    
 }
