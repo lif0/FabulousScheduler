@@ -1,4 +1,5 @@
 using FabulousScheduler.Core.Types;
+using FabulousScheduler.Cron.Interfaces;
 using FabulousScheduler.Cron.Result;
 
 namespace FabulousScheduler.Cron;
@@ -8,9 +9,8 @@ public static class CronJobManager
 #pragma warning disable CS8618
     private static Internal.CronJobScheduler _scheduler;
 #pragma warning restore CS8618
-    
-    public delegate void CallbackHandler(JobResult<JobOk, JobFail> e);
-    public static event CallbackHandler? CallbackEvent;
+
+    public static event ICronJobScheduler.JobResultEventHandler? JobResultEvent;
     
 
     /// <summary>
@@ -97,7 +97,8 @@ public static class CronJobManager
     private static void InternalInit(Config? config = null)
     {
         _scheduler = new(config ?? Config.Default);
-        _scheduler.CallbackHandler += result => CallbackEvent?.Invoke(result);
+        _scheduler.JobResultEvent += (ref ICronJob sender, ref JobResult<JobOk, JobFail> e) =>
+            JobResultEvent?.Invoke(ref sender, ref e);
     }
 
     #endregion

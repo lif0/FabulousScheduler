@@ -114,8 +114,8 @@ public abstract class BaseCronJob : ICronJob
 			LastExecute = dt ?? DateTime.Now;
 		}
 	}
-	
-	public void SetStateWaiting()
+
+	void ICronJob.SetStateWaiting()
 	{
 		lock (_lock)
 		{
@@ -124,7 +124,8 @@ public abstract class BaseCronJob : ICronJob
 			_state = CronJobStateEnum.Waiting;
 		}
 	}
-	
+
+
 	public void Dispose()
 	{
 		_disposed = true;
@@ -143,6 +144,7 @@ public abstract class BaseCronJob : ICronJob
 	private void UpdateState()
 	{
 		if(_state is not CronJobStateEnum.Sleeping) return;
+		if(SleepDuration == TimeSpan.MaxValue) return;
 
 		lock (_lock)
 		{

@@ -33,11 +33,11 @@
 
 ## 💡 Motivation <a id="motivation" />
 
-One day I came across the fact that none of the dotnet cron libraries can perform many tasks in parallel, while doing it on time and non-stop. I needed to grab html pages with prices for certain products from sites such as <i>ebay, amazon, walmart</i>, to track the best deals for certain products and send a notification with a link to these products to my client.
+One day I came across the fact that none of a libraries can perform many tasks in parallel, while doing it on time and non-stop. I needed to grab html pages with prices for certain products from sites such as ebay, amazon, walmart, to track the best deals for certain products and send a notification with a link to these products to my client.
 <br><br>**Please leave a ⭐ as motivation if you liked the lib 😄**<br>
 
 ## 🫵 Who is this library for <a id="purpose" /> 
-I have developed this library for cases where you need to launch a large count of tasks without stopping. When you need to do a lot of action in parallel and on a competitive basis in a timely manner. I used this library where I had to grab the site pages at the same time once a minute and it proved to be stable.
+I have developed this library for cases where you need to launch a large count of tasks without stopping. When you need to do a lot of IO-bound in parallel. I used this library where I had to grab the site pages at the same time once a minute and it proved to be stable.
 <br> In which projects it will be perform best❓<br>
 - If you need to grab a site pages without stopping <br>
 - If you need to get price quotes from exchanges for a large count of shares by API
@@ -93,29 +93,47 @@ Every Job return the type <b>JobResult<<i>IJobOk</i>, <i>IJobFail</i>></b> if a 
 FabulousScheduler uses a builder pattern that allows you to conveniently create a cron or queue jobs for executing
 
 ```csharp
+using FabulousScheduler.Core.Types;
+using FabulousScheduler.Cron.Interfaces;
 using FabulousScheduler.Cron;
+using FabulousScheduler.Cron.Result;
 
-// Init CronJobManager with default config
-CronJobManager.Init();
+var config = new Config(
+    maxParallelJobExecute: 5,
+    sleepAfterCheck: TimeSpan.FromMilliseconds(100)
+);
+// Init CronJobManager with config
+// If you not provide config, CronJobManager will be init with default config
+CronJobManager.Init(config);
 
 // Register callback for job's result
-CronJobManager.CallbackEvent += result =>
+CronJobManager.JobResultEvent += (ref ICronJob job, ref JobResult<JobOk, JobFail> res) =>
 {
-    Console.WriteLine("[{0:hh:mm:ss}] jobID: {1} IsSuccess: {2}", DateTime.Now, result.Id, result.IsSuccess, result.IsFail);
+    var now = DateTime.Now;
+    if (res.IsSuccess)
+        Console.WriteLine("[{0:hh:mm:ss}] {1} {2} IsSuccess", now, job.Name, res.ID);
+    else
+        Console.WriteLine("[{0:hh:mm:ss}] {1} {2} IsFail", now, job.Name, res.ID);
 };
 
-// Registe the job
+// Registe a job
 CronJobManager.Register(
     action: () =>
     {
-        throw new Exception("some err");
+        //do some work
+        int a = 10;
+        int b = 100;
+        int c = a + b;
+        _ = c;
     },
-    sleepDuration: TimeSpan.FromSeconds(1) 
+    sleepDuration: TimeSpan.FromSeconds(1),
+    name: "ExampleJob"
 );
-// The job will fall asleep for 1 second after  success completion, then it will wake up and will be push the job pool
-
+// The job will fall asleep for 1 second after success completion, then it will wake up and will be push the job pool
 Thread.Sleep(-1);
 ```
+<img src="assets/deminstration_cron_jobmanager.gif" width="auto" height="50%">
+
 
 ## 📄 LICENSE <a id="LICENSE" />
 ### GPL3 LICENSE SYNOPSIS

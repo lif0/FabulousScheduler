@@ -1,26 +1,33 @@
 using System.Collections.Concurrent;
-using FabulousScheduler.Core.Types;
-using FabulousScheduler.Cron.Enums;
+using System.Runtime.CompilerServices;
 using FabulousScheduler.Cron.Interfaces;
-using FabulousScheduler.Cron.Result;
 
 namespace FabulousScheduler.Cron.Abstraction;
 
 public abstract class BaseCronJobScheduler : ICronJobScheduler
 {
-	private readonly object _lock;
+	// private
 	private readonly SemaphoreSlim _jobParallelPool;
-	
+	private readonly ConcurrentDictionary<Guid, (ICronJob, Task)> _inProgress;
+	private readonly ConcurrentQueue<ICronJob> _queue;
+
+	// protected
 	protected readonly Config Config;
 	protected readonly ConcurrentDictionary<Guid, ICronJob> Jobs;
+
+	// public
+	public event ICronJobScheduler.JobResultEventHandler? JobResultEvent;
 
 	protected BaseCronJobScheduler(Config? config)
 	{
 		Config = config ?? Config.Default;
-
 		Jobs = new ConcurrentDictionary<Guid, ICronJob>();
+
 		_jobParallelPool = new SemaphoreSlim(Config.MaxParallelJobExecute, Config.MaxParallelJobExecute);
-		_lock = new object();
+		_inProgress = new ConcurrentDictionary<Guid, (ICronJob, Task)>(Environment.ProcessorCount, this.Config.MaxParallelJobExecute);
+		_queue = new ConcurrentQueue<ICronJob>();
+		
+		Task.Factory.StartNew(ExecutableLoop, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
 	}
 	
 	/// <summary>
@@ -52,67 +59,75 @@ public abstract class BaseCronJobScheduler : ICronJobScheduler
 		return fail;
 	}
 
-	protected Task<JobResult<JobOk, JobFail>[]> ExecuteReadyJob()
-	{
-		ICronJob[] jobs;
-		lock(_lock)
-		{
-			jobs = Jobs
-				.Where(x => x.Value.State == CronJobStateEnum.Ready)
-				.Select(x => x.Value)
-				.OrderBy(x => x.LastExecute)
-				.ToArray();
-
-			if (jobs.Length == 0)
-			{
-				return Task.FromResult(Array.Empty<JobResult<JobOk, JobFail>>());
-			}
-
-			Parallel.ForEach(jobs, j => j.SetStateWaiting());
-		}
-
-		return ExecuteJobsAsync(jobs);
-	}
-
 	#region Public
-	public int CurrentRunnableJobCount() => _jobParallelPool.CurrentCount;
+	public int CurrentRunnableJobCount() => _inProgress.Count;
 	#endregion
 	
 	#region Private
 
-	private async Task<JobResult<JobOk, JobFail>[]> ExecuteJobsAsync(ICronJob[] jobs)
+	/// <returns>Time: O(n) - BAD</returns>
+	private bool TryScheduleJobs()
 	{
-		var tasks = new Task<JobResult<JobOk, JobFail>>[jobs.Length];
-		int i = 0;
+		var jobs = Jobs
+			.Where(x => x.Value.State == State.Ready)
+			.Select(x => x.Value)
+			.OrderBy(x => x.LastExecute)
+			.ToArray();
 
+		if (jobs.Length == 0) return false;
+		
 		foreach (var job in jobs)
 		{
-			await _jobParallelPool.WaitAsync();
-			tasks[i] = await Task.Factory.StartNew(
-				async obj =>
-				{
-					var cronJob = obj as ICronJob;
-					if (cronJob is null)
-					{
-						ArgumentNullException.ThrowIfNull(cronJob);
-					}
-		
-					var res = await cronJob.ExecuteAsync();
-					_jobParallelPool.Release();
-
-					return res;
-				}, 
-				job,
-				CancellationToken.None,
-				TaskCreationOptions.DenyChildAttach,
-				TaskScheduler.Default);
-			
-			i++;
+			job.SetStateWaiting();
+			_queue.Enqueue(job);
 		}
 
-		await Task.WhenAll(tasks);
+		return true;
+	} 
 
-		return tasks.Select(x => x.Result).ToArray();
+	private async void ExecutableLoop()
+	{
+		while (true)
+		{
+			if (this._queue.IsEmpty)
+			{
+				if (!TryScheduleJobs())
+				{
+					await Task.Delay(this.Config.SleepAfterCheck, CancellationToken.None);
+					continue;
+				}
+			}
+
+			await _jobParallelPool.WaitAsync(CancellationToken.None);
+
+			if (_queue.TryDequeue(out ICronJob? job))
+			{
+				CreateTask(ref job);
+			}
+		}
+		// ReSharper disable once FunctionNeverReturns
+	}
+	
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	private void CreateTask(ref ICronJob job)
+	{
+		var task = Task.Factory.StartNew(async obj =>
+		{
+			var @job = obj as ICronJob;
+			if (@job is null)
+			{
+				ArgumentNullException.ThrowIfNull(@job, nameof(@job));
+			}
+
+			var res = await @job.ExecuteAsync();
+			if (_inProgress.TryRemove(@job.ID, out var tup))
+			{
+				JobResultEvent?.Invoke(ref tup.Item1, ref res);
+			}
+			_jobParallelPool.Release(1);
+		}, job, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default);
+
+		_inProgress.TryAdd(job.ID, (job, task));
 	}
 
 	#endregion

@@ -5,7 +5,7 @@ namespace FabulousScheduler.Cron.Result;
 /// <summary>
 ///  <inheritdoc cref="IJobOk"/>
 /// </summary>
-public class JobOk : IJobOk
+public sealed class JobOk : IJobOk
 {
     public JobOk(Guid jobID)
     {
