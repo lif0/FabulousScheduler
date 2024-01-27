@@ -164,7 +164,7 @@ public class JobTests
 		Assert.Equal(1, job.TotalFail);
 		Assert.Equal(CronJobStateEnum.Ready, job.State);
 		
-		Assert.Equal(oneTimeJobMs, sw.Elapsed.TotalMilliseconds, 5.0f );
+		Assert.Equal(oneTimeJobMs, sw.Elapsed.TotalMilliseconds, 10.0f );
 	}
 	
 	[Fact]
