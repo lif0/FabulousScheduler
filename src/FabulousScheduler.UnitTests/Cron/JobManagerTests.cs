@@ -272,6 +272,7 @@ public class JobManagerTests
 		int countJobs = 1000, oneTimeJobMs = 5, sleepDurationSec = 1, parallelJobs = Environment.ProcessorCount*10;
 		
 		// helper
+		int countCall = 0;
 		var hash = new ConcurrentDictionary<Guid, byte>();
 		CancellationTokenSource cts = new();
 	
@@ -280,7 +281,13 @@ public class JobManagerTests
 		var manager = new TestCronJobScheduler(config);
 		manager.JobResultEvent += (ref ICronJob _, ref JobResult<JobOk, JobFail> e) =>
 		{
+			Interlocked.Increment(ref countCall);
 			hash.AddOrUpdate(e.ID, _ => 1, (_, b) => ++b);
+			
+			if (countCall == countJobs*2)
+			{
+				cts.Cancel();
+			}
 		};
 	
 		// test
@@ -291,8 +298,7 @@ public class JobManagerTests
 		}
 		manager.Register(jobs);
 		manager.RunScheduler();
-		// ReSharper disable once UselessBinaryOperation
-		cts.CancelAfter(TimeSpan.FromSeconds(sleepDurationSec*2));
+
 		await Helper.Sleep(cts.Token);
 		bool allHasLastExecute = jobs.TrueForAll(x => x.LastSuccessExecute.HasValue);
 		
