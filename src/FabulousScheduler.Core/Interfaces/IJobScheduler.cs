@@ -8,5 +8,8 @@ namespace FabulousScheduler.Core.Interfaces;
 /// </summary>
 public interface IJobScheduler
 {
-    
+    /// <summary>
+    /// Start the job scheduler
+    /// </summary>
+    public void RunScheduler();
 }

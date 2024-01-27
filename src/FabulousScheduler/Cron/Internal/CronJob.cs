@@ -33,7 +33,7 @@ internal sealed class CronJob : BaseCronJob
         {
             await _action.Invoke();
         }
-        catch (Exception e)
+        catch (System.Exception e)
         {
             return new JobFail(this.ID, CronJobFailEnum.InternalException, e.Message, e);
         }

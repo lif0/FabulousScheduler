@@ -90,7 +90,11 @@ Every Job return the type <b>JobResult<<i>IJobOk</i>, <i>IJobFail</i>></b> if a 
     Console.WriteLine(msg);
 ```
 
-FabulousScheduler uses a builder pattern that allows you to conveniently create a cron or queue jobs for executing
+FabulousScheduler uses a builder pattern that allows you to conveniently create a cron or queue jobs for executing.
+<br>
+1. SetConfig()
+2. Register jobs
+3. RunScheduler()
 
 ```csharp
 using FabulousScheduler.Core.Types;
@@ -102,9 +106,7 @@ var config = new Config(
     maxParallelJobExecute: 5,
     sleepAfterCheck: TimeSpan.FromMilliseconds(100)
 );
-// Init CronJobManager with config
-// If you not provide config, CronJobManager will be init with default config
-CronJobManager.Init(config);
+CronJobManager.SetConfig(config);
 
 // Register callback for job's result
 CronJobManager.JobResultEvent += (ref ICronJob job, ref JobResult<JobOk, JobFail> res) =>
@@ -116,7 +118,7 @@ CronJobManager.JobResultEvent += (ref ICronJob job, ref JobResult<JobOk, JobFail
         Console.WriteLine("[{0:hh:mm:ss}] {1} {2} IsFail", now, job.Name, res.ID);
 };
 
-// Registe a job
+// Register a job
 CronJobManager.Register(
     action: () =>
     {
@@ -124,12 +126,18 @@ CronJobManager.Register(
         int a = 10;
         int b = 100;
         int c = a + b;
-        _ = c;
     },
     sleepDuration: TimeSpan.FromSeconds(1),
     name: "ExampleJob"
 );
-// The job will fall asleep for 1 second after success completion, then it will wake up and will be push the job pool
+
+// Start a job scheduler
+CronJobManager.RunScheduler();
+
+/*
+ * The job will fall asleep for 1 second after success completion, then it will wake up and will be push the job pool
+*/
+
 Thread.Sleep(-1);
 ```
 <img src="assets/deminstration_cron_jobmanager.gif" width="auto" height="50%">

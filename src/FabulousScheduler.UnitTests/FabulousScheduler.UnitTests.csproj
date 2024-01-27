@@ -8,6 +8,15 @@
         <IsPackable>false</IsPackable>
 
         <RootNamespace>Job.Core.Tests</RootNamespace>
+
+        <Configurations>Debug;Release;DebugWithConsole</Configurations>
+
+        <Platforms>AnyCPU</Platforms>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'DebugWithConsole' ">
+      <DebugSymbols Condition=" '$(DebugSymbols)' == '' ">true</DebugSymbols>
+      <Optimize Condition=" '$(Optimize)' == '' ">false</Optimize>
     </PropertyGroup>
 
     <ItemGroup>
