@@ -12,6 +12,8 @@
         <IsPackable>true</IsPackable>
         <Version>1.0.0</Version>
         <PackageIcon>icon.png</PackageIcon>
+        <Configurations>Debug;Release;DebugWithConsole</Configurations>
+        <Platforms>AnyCPU</Platforms>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -20,6 +22,12 @@
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
       <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'DebugWithConsole' ">
+      <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+      <DebugSymbols Condition=" '$(DebugSymbols)' == '' ">true</DebugSymbols>
+      <Optimize Condition=" '$(Optimize)' == '' ">false</Optimize>
     </PropertyGroup>
 
     <ItemGroup>

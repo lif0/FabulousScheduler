@@ -16,7 +16,12 @@ public class Config
         {
             SleepAfterCheck = sleepAfterCheck;
         }
-		
+    }
+
+    public Config(int maxParallelJobExecute)
+    {
+        MaxParallelJobExecute = maxParallelJobExecute;
+        SleepAfterCheck = TimeSpan.FromMilliseconds(100);
     }
 
     /// <summary>

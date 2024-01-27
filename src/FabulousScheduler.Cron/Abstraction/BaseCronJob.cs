@@ -129,11 +129,15 @@ public abstract class BaseCronJob : ICronJob
 	public void Dispose()
 	{
 		_disposed = true;
+		if (_state is CronJobStateEnum.Ready)
+		{
+			_state = CronJobStateEnum.Disposed;
+		}
 	}
 
 	public ValueTask DisposeAsync()
 	{
-		_disposed = true;
+		Dispose();
 		return ValueTask.CompletedTask;
 	}
 

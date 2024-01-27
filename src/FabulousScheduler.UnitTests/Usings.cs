@@ -1,7 +1,6 @@
 global using Xunit;
 
 // Cron
-global using JobManager  = Job.Core.Tests.Cron.TestCronJobScheduler;
 global using Job_Random  = Job.Core.Tests.Cron.CronJobRandomResult;
 global using Job_Ok      = Job.Core.Tests.Cron.CronJobOkResult;
 global using Job_Fail    = Job.Core.Tests.Cron.CronJobFailedExecuteResult;

@@ -1,34 +1,39 @@
 using FabulousScheduler.Core.Types;
+using FabulousScheduler.Cron.Exception;
 using FabulousScheduler.Cron.Interfaces;
+using FabulousScheduler.Cron.Internal;
 using FabulousScheduler.Cron.Result;
 
 namespace FabulousScheduler.Cron;
 
 public static class CronJobManager
 {
-#pragma warning disable CS8618
-    private static Internal.CronJobScheduler _scheduler;
-#pragma warning restore CS8618
+    private static Config? _config;
+    private static CronJobScheduler? _scheduler;
 
     public static event ICronJobScheduler.JobResultEventHandler? JobResultEvent;
-    
 
     /// <summary>
-    /// Initialize CronJobManager 
+    /// Set config for CronJobManager
     /// </summary>
-    /// <remarks>With <see cref="Config.Default"/> configs</remarks>
-    public static void Init()
+    /// <param name="config">Config instance</param>
+    /// <exception cref="SetConfigAfterRunSchedulingException"> if you call this method after calling <see cref="RunScheduler"/> method</exception>
+    public static void SetConfig(Config config)
+    {
+        if (_scheduler != null)
+        {
+            throw new SetConfigAfterRunSchedulingException($"{nameof(_scheduler)} already initialized");
+        }
+        _config = config;
+    }
+
+    /// <summary>
+    /// Start a job scheduler
+    /// </summary>
+    public static void RunScheduler()
     {
         InternalInit();
-    }
-    
-    /// <summary>
-    /// Initialize CronJobManager with configs
-    /// </summary>
-    /// <param name="config"></param>
-    public static void Init(Config config)
-    {
-        InternalInit(config);
+        _scheduler!.RunScheduler();
     }
 
     #region RegisterJob
@@ -75,6 +80,8 @@ public static class CronJobManager
 
     private static Guid InternalRegisterJob(Func<Task> action, string? name, string? category, TimeSpan sleepDuration)
     {
+        InternalInit();
+        ArgumentNullException.ThrowIfNull(_scheduler, "You should init CronJobManager");
         switch (name, category)
         {
             case (null, null):
@@ -96,9 +103,12 @@ public static class CronJobManager
     
     private static void InternalInit(Config? config = null)
     {
-        _scheduler = new(config ?? Config.Default);
-        _scheduler.JobResultEvent += (ref ICronJob sender, ref JobResult<JobOk, JobFail> e) =>
-            JobResultEvent?.Invoke(ref sender, ref e);
+        if (_scheduler != null) return;
+
+        _scheduler = new(config);
+        _scheduler.JobResultEvent += 
+            (ref ICronJob sender, ref JobResult<JobOk, JobFail> e) =>
+                JobResultEvent?.Invoke(ref sender, ref e);
     }
 
     #endregion

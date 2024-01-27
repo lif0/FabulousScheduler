@@ -163,4 +163,16 @@ public abstract class BaseQueueJobScheduler : IQueueJobScheduler
 	}
 
 	#endregion
+
+	public void Dispose()
+	{
+		_loop?.Dispose();
+		_cancellationToken.Dispose();
+		_jobParallelPool.Dispose();
+	}
+
+	public void RunScheduler()
+	{
+		throw new NotImplementedException();
+	}
 }

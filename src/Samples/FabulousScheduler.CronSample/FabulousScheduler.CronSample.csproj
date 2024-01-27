@@ -6,6 +6,13 @@
         <Nullable>enable</Nullable>
         <TargetFrameworks>net7.0;net8.0</TargetFrameworks>
         <IsPackable>false</IsPackable>
+        <Configurations>Debug;Release;DebugWithConsole</Configurations>
+        <Platforms>AnyCPU</Platforms>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'DebugWithConsole' ">
+      <DebugSymbols Condition=" '$(DebugSymbols)' == '' ">true</DebugSymbols>
+      <Optimize Condition=" '$(Optimize)' == '' ">false</Optimize>
     </PropertyGroup>
 
     <ItemGroup>
