@@ -30,22 +30,7 @@ CronJobManager.Register(
         _ = c;
     },
     sleepDuration: TimeSpan.FromSeconds(1),
-    name: "Sync ExampleJob"
-);
-
-// Register a job
-CronJobManager.Register(
-    action: () =>
-    {
-        //do some work
-        int a = 10;
-        int b = 100;
-        int c = a + b;
-        _ = c;
-        return Task.CompletedTask;
-    },
-    sleepDuration: TimeSpan.FromSeconds(1),
-    name: "Sync ExampleJob"
+    name: "ExampleJob"
 );
 
 // Start a job scheduler
