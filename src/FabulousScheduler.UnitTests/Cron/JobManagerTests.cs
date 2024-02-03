@@ -111,7 +111,7 @@ public class JobManagerTests
 		var manager = new TestCronJobScheduler(config);
 		manager.JobResultEvent += (ref ICronJob _, ref JobResult<JobOk, JobFail> e) =>
 		{
-			hash.AddOrUpdate(e.ID, _ => 1, (_, b) => ++b);
+			hash.AddOrUpdate(e.JobID, _ => 1, (_, b) => ++b);
 	
 			if (hash.Count == countJobs)
 			{
@@ -156,7 +156,7 @@ public class JobManagerTests
 		var manager = new TestCronJobScheduler(config);
 		manager.JobResultEvent += (ref ICronJob _, ref JobResult<JobOk, JobFail> e) =>
 		{
-			hash.AddOrUpdate(e.ID, _ => 1, (_, b) => ++b);
+			hash.AddOrUpdate(e.JobID, _ => 1, (_, b) => ++b);
 	
 			if (hash.Count == countJobs)
 			{
@@ -201,7 +201,7 @@ public class JobManagerTests
 		var manager = new TestCronJobScheduler(config);
 		manager.JobResultEvent += (ref ICronJob _, ref JobResult<JobOk, JobFail> e) =>
 		{
-			hash.AddOrUpdate(e.ID, _ => 1, (_, b) => ++b);
+			hash.AddOrUpdate(e.JobID, _ => 1, (_, b) => ++b);
 	
 			if (hash.Count == countJobs)
 			{
@@ -245,7 +245,7 @@ public class JobManagerTests
 		var manager = new TestCronJobScheduler(config);
 		manager.JobResultEvent += (ref ICronJob _, ref JobResult<JobOk, JobFail> e) =>
 		{
-			hash.AddOrUpdate(e.ID, _ => 1, (_, b) => ++b);
+			hash.AddOrUpdate(e.JobID, _ => 1, (_, b) => ++b);
 		};
 	
 		// test
@@ -282,7 +282,7 @@ public class JobManagerTests
 		manager.JobResultEvent += (ref ICronJob _, ref JobResult<JobOk, JobFail> e) =>
 		{
 			Interlocked.Increment(ref countCall);
-			hash.AddOrUpdate(e.ID, _ => 1, (_, b) => ++b);
+			hash.AddOrUpdate(e.JobID, _ => 1, (_, b) => ++b);
 			
 			if (countCall == countJobs*2)
 			{

@@ -14,9 +14,9 @@ CronJobManager.JobResultEvent += (ref ICronJob job, ref JobResult<JobOk, JobFail
 {
     var now = DateTime.Now;
     if (res.IsSuccess)
-        Console.WriteLine("[{0:hh:mm:ss}] {1} {2} IsSuccess", now, job.Name, res.ID);
+        Console.WriteLine("[{0:hh:mm:ss}] {1} {2}", now, job.Name, res.JobID);
     else
-        Console.WriteLine("[{0:hh:mm:ss}] {1} {2} IsFail", now, job.Name, res.ID);
+        Console.WriteLine("[{0:hh:mm:ss}] {1} {2}", now, job.Name, res.JobID);
 };
 
 // Register a job
@@ -27,11 +27,10 @@ CronJobManager.Register(
         int a = 10;
         int b = 100;
         int c = a + b;
-        
-        return Task.CompletedTask;
+        _ = c;
     },
     sleepDuration: TimeSpan.FromSeconds(1),
-    name: "ExampleJob"
+    name: "Sync ExampleJob"
 );
 
 // Start a job scheduler

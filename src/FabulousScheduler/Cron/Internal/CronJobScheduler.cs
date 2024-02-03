@@ -14,6 +14,49 @@ internal sealed class CronJobScheduler : BaseCronJobScheduler
     {
     }
 
+    #region RegisterSynchronousJob
+    
+    /// <summary>
+    /// Register a cron job
+    /// </summary>
+    internal Guid RegisterCron(Action action, TimeSpan sleepDuration)
+    {
+        CronJob job = new (action, sleepDuration);
+        base.Register(job);
+        return job.ID;
+    }
+    
+    /// <summary>
+    /// Register a cron job
+    /// </summary>
+    /// <param name="action">A action that should be repeated</param>
+    /// <param name="name">The job's name</param>
+    /// <param name="sleepDuration">How long time a job will be sleep after success execute</param>
+    internal Guid RegisterCron(Action action, string name, TimeSpan sleepDuration)
+    {
+        CronJob job = new (action, name, sleepDuration);
+        base.Register(job);
+        return job.ID;
+    }
+
+    /// <summary>
+    /// Register a cron job
+    /// </summary>
+    /// <param name="action">A action that should be repeated</param>
+    /// <param name="name">The job's name</param>
+    /// <param name="category">The job's category</param>
+    /// <param name="sleepDuration">How long time a job will be sleep after success execute</param>
+    internal Guid RegisterCron(Action action, string name, string category, TimeSpan sleepDuration)
+    {
+        CronJob job = new(action, name: name, category, sleepDuration);
+        base.Register(job);
+        return job.ID;
+    }
+
+    #endregion
+    
+    #region RegisterAsynchronousAction
+    
     /// <summary>
     /// Register a cron job
     /// </summary>
@@ -50,4 +93,6 @@ internal sealed class CronJobScheduler : BaseCronJobScheduler
         base.Register(job);
         return job.ID;
     }
+
+    #endregion
 }

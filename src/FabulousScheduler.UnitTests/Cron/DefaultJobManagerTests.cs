@@ -37,9 +37,9 @@ public class DefaultJobManagerTests
         void OnCallbackEvent(ref ICronJob sender, ref JobResult<JobOk, JobFail> e)
         {
 	        // ReSharper disable once AccessToModifiedClosure
-	        if (e.ID != jobID) return;
+	        if (e.JobID != jobID) return;
 
-	        _testOutputHelper.WriteLine("${0} IsFail: {1} {2}", e.ID, e.IsFail, DateTime.Now.Ticks);
+	        _testOutputHelper.WriteLine("${0} IsFail: {1} {2}", e.JobID, e.IsFail, DateTime.Now.Ticks);
 	        Interlocked.Increment(ref countCall);
 	        tcs.SetResult(e);
 	        tcs.TrySetCanceled();
@@ -77,9 +77,9 @@ public class DefaultJobManagerTests
 	    void OnCallbackEvent(ref ICronJob sender, ref JobResult<JobOk, JobFail> e)
 	    {
 		    // ReSharper disable once AccessToModifiedClosure
-		    if (e.ID != jobID) return;
+		    if (e.JobID != jobID) return;
 
-		    _testOutputHelper.WriteLine("${0} IsSuccess: {1} {2}", e.ID, e.IsSuccess, DateTime.Now.Ticks);
+		    _testOutputHelper.WriteLine("${0} IsSuccess: {1} {2}", e.JobID, e.IsSuccess, DateTime.Now.Ticks);
 		    countCall++;
 		    tcs.SetResult(e);
 		    tcs.TrySetCanceled();
