@@ -38,7 +38,7 @@ public class JobResult<TOk, TFail> where TOk : IJobOk where TFail : IJobFail
     /// Get job's identity
     /// </summary>
     /// <returns>job's identity</returns>
-    public Guid ID => !IsFail ? _value!.ID : _fail!.ID;
+    public Guid JobID => !IsFail ? _value!.ID : _fail!.ID;
 
     public TFail? GetFail() => _fail;
 

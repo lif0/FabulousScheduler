@@ -35,7 +35,7 @@ internal class CronJobRandomResult : BaseCronJob
 {
 	public TimeSpan JobSimulateWorkTime { get; }
 
-	public CronJobRandomResult(string name, TimeSpan sleepDuration, TimeSpan jobSimulateWorkTime) : base(name,"test random result", sleepDuration)
+	public CronJobRandomResult(string name, TimeSpan sleepDuration, TimeSpan jobSimulateWorkTime) : base(name,"test random result", sleepDuration, true)
 	{
 		JobSimulateWorkTime = jobSimulateWorkTime;
 	}
@@ -57,7 +57,7 @@ internal class CronJobOkResult : BaseCronJob
 {
 	public TimeSpan JobSimulateWorkTime { get; }
 
-	public CronJobOkResult(string name, TimeSpan sleepDuration, TimeSpan jobSimulateWorkTime) : base(name,"test success", sleepDuration)
+	public CronJobOkResult(string name, TimeSpan sleepDuration, TimeSpan jobSimulateWorkTime) : base(name,"test success", sleepDuration, true)
 	{
 		JobSimulateWorkTime = jobSimulateWorkTime;
 	}
@@ -74,7 +74,7 @@ internal class CronJobFailedExecuteResult : BaseCronJob
 {
 	public TimeSpan JobSimulateWorkTime { get; }
 
-	public CronJobFailedExecuteResult(string name, TimeSpan sleepDuration, TimeSpan jobSimulateWorkTime) : base(name,"test error", sleepDuration)
+	public CronJobFailedExecuteResult(string name, TimeSpan sleepDuration, TimeSpan jobSimulateWorkTime) : base(name,"test error", sleepDuration, true)
 	{
 		JobSimulateWorkTime = jobSimulateWorkTime;
 	}
@@ -92,7 +92,7 @@ internal class CronJobInternalExceptionResult : BaseCronJob
 {
 	private TimeSpan JobSimulateWorkTime { get; }
 
-	public CronJobInternalExceptionResult(string name, TimeSpan sleepDuration, TimeSpan jobSimulateWorkTime) : base(name, "test error", sleepDuration)
+	public CronJobInternalExceptionResult(string name, TimeSpan sleepDuration, TimeSpan jobSimulateWorkTime) : base(name, "test error", sleepDuration, true)
 	{
 		JobSimulateWorkTime = jobSimulateWorkTime;
 	}

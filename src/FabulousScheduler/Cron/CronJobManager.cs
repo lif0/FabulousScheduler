@@ -36,7 +36,7 @@ public static class CronJobManager
         _scheduler!.RunScheduler();
     }
 
-    #region RegisterJob
+    #region RegisterAsyncJob
 
     /// <summary>
     /// Register a job on jobManager
@@ -46,7 +46,7 @@ public static class CronJobManager
     /// <returns>return JobID</returns>
     public static Guid Register(Func<Task> action, TimeSpan sleepDuration)
     {
-        return InternalRegisterJob(action, null, null, sleepDuration);
+        return InternalRegisterAsyncJob(action, null, null, sleepDuration);
     }
 
     /// <summary>
@@ -58,7 +58,7 @@ public static class CronJobManager
     /// <returns>return JobID</returns>
     public static Guid Register(Func<Task> action, string name, TimeSpan sleepDuration)
     {
-        return InternalRegisterJob(action, name, null, sleepDuration);
+        return InternalRegisterAsyncJob(action, name, null, sleepDuration);
     }
     
     /// <summary>
@@ -71,14 +71,79 @@ public static class CronJobManager
     /// <returns>return JobID</returns>
     public static Guid Register(Func<Task> action, string name, string category, TimeSpan sleepDuration)
     {
+        return InternalRegisterAsyncJob(action, name, category, sleepDuration);
+    }
+
+    #endregion
+    
+    #region RegisterSyncJob
+
+    /// <summary>
+    /// Register a job on jobManager
+    /// </summary>
+    /// <param name="action">A algorithm that should be repeated</param>
+    /// <param name="sleepDuration">How long time a job will be sleep after success execute</param>
+    /// <returns>return JobID</returns>
+    public static Guid Register(Action action, TimeSpan sleepDuration)
+    {
+        return InternalRegisterJob(action, null, null, sleepDuration);
+    }
+
+    /// <summary>
+    /// Register a job on jobManager
+    /// </summary>
+    /// <param name="action">A action that should be repeated</param>
+    /// <param name="name">The job's name</param>
+    /// <param name="sleepDuration">How long time a job will be sleep after success execute</param>
+    /// <returns>return JobID</returns>
+    public static Guid Register(Action action, string name, TimeSpan sleepDuration)
+    {
+        return InternalRegisterJob(action, name, null, sleepDuration);
+    }
+    
+    /// <summary>
+    /// Register a job on jobManager
+    /// </summary>
+    /// <param name="action">A action that should be repeated</param>
+    /// <param name="name">The job's name</param>
+    /// <param name="category">The job's category</param>
+    /// <param name="sleepDuration">How long time a job will be sleep after success execute</param>
+    /// <returns>return JobID</returns>
+    public static Guid Register(Action action, string name, string category, TimeSpan sleepDuration)
+    {
         return InternalRegisterJob(action, name, category, sleepDuration);
     }
 
     #endregion
+    
+    
 
     #region Private
 
-    private static Guid InternalRegisterJob(Func<Task> action, string? name, string? category, TimeSpan sleepDuration)
+    private static Guid InternalRegisterAsyncJob(Func<Task> action, string? name, string? category, TimeSpan sleepDuration)
+    {
+        InternalInit();
+        ArgumentNullException.ThrowIfNull(_scheduler, "You should init CronJobManager");
+        switch (name, category)
+        {
+            case (null, null):
+            {
+                return _scheduler.RegisterCron(action, sleepDuration);
+            } 
+            case (not null, null):
+            {
+                return _scheduler.RegisterCron(action, name, sleepDuration);
+            }
+            case (not null, not null):
+            {
+                return _scheduler.RegisterCron(action, name, category, sleepDuration);
+            }
+            default:
+                return _scheduler.RegisterCron(action, sleepDuration);
+        }
+    }
+    
+    private static Guid InternalRegisterJob(Action action, string? name, string? category, TimeSpan sleepDuration)
     {
         InternalInit();
         ArgumentNullException.ThrowIfNull(_scheduler, "You should init CronJobManager");

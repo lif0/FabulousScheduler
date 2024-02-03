@@ -27,7 +27,6 @@ public interface ICronJob: IJob
 	public long TotalRun { get; }
 	public long TotalFail { get; }
 	
-	
 	public Task<JobResult<JobOk, JobFail>> ExecuteAsync();
 
 	internal void SetStateWaiting();

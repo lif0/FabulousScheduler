@@ -18,6 +18,12 @@ public abstract class BaseCronJob : ICronJob
 
 	#endregion
 
+	#region Protected
+
+	protected bool IsAsyncAction { get; }
+
+	#endregion
+	
 	#region Info
 
 	public string Name { get; }
@@ -46,11 +52,12 @@ public abstract class BaseCronJob : ICronJob
 
 	#endregion
 	
-	protected BaseCronJob(string name,  string category, TimeSpan sleepDuration)
+	protected BaseCronJob(string name,  string category, TimeSpan sleepDuration, bool isAsyncAction)
 	{
 		ID = Guid.NewGuid();
 		Name = name;
 		Category = category;
+		IsAsyncAction = isAsyncAction;
 		this._state = CronJobStateEnum.Ready;
 
 		if (sleepDuration  == TimeSpan.MinValue || sleepDuration == TimeSpan.Zero)
@@ -89,7 +96,17 @@ public abstract class BaseCronJob : ICronJob
 
 		try
 		{
-			var res = await ActionJob();
+			JobResult<JobOk, JobFail> res;
+			
+			if (IsAsyncAction)
+			{
+				res = await ActionJob();
+			}
+			else
+			{
+				res = ActionJob().Result;
+			}
+			
 			dt = DateTime.Now;
 
 			if (res.IsSuccess)
