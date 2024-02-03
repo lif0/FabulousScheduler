@@ -1,16 +1,22 @@
-using FabulousScheduler.Core.Types;
-using FabulousScheduler.Cron.Exception;
 using FabulousScheduler.Cron.Interfaces;
+using FabulousScheduler.Cron.Exception;
 using FabulousScheduler.Cron.Internal;
 using FabulousScheduler.Cron.Result;
+using FabulousScheduler.Core.Types;
 
 namespace FabulousScheduler.Cron;
 
+/// <summary>
+/// A Cron job's manager
+/// </summary>
 public static class CronJobManager
 {
     private static Config? _config;
     private static CronJobScheduler? _scheduler;
 
+    /// <summary>
+    /// Callback job's result
+    /// </summary>
     public static event ICronJobScheduler.JobResultEventHandler? JobResultEvent;
 
     /// <summary>
@@ -28,7 +34,7 @@ public static class CronJobManager
     }
 
     /// <summary>
-    /// Start a job scheduler
+    /// Start the job's scheduler
     /// </summary>
     public static void RunScheduler()
     {
@@ -36,7 +42,7 @@ public static class CronJobManager
         _scheduler!.RunScheduler();
     }
 
-    #region RegisterAsyncJob
+    #region RegisterJob
 
     /// <summary>
     /// Register a job on jobManager
@@ -46,7 +52,10 @@ public static class CronJobManager
     /// <returns>return JobID</returns>
     public static Guid Register(Func<Task> action, TimeSpan sleepDuration)
     {
-        return InternalRegisterAsyncJob(action, null, null, sleepDuration);
+        return InternalRegisterJob(
+            sleepDuration, 
+            actionAsync:action
+        );
     }
 
     /// <summary>
@@ -58,7 +67,11 @@ public static class CronJobManager
     /// <returns>return JobID</returns>
     public static Guid Register(Func<Task> action, string name, TimeSpan sleepDuration)
     {
-        return InternalRegisterAsyncJob(action, name, null, sleepDuration);
+        return InternalRegisterJob(
+            sleepDuration, 
+            actionAsync:action,
+            name:name
+        );
     }
     
     /// <summary>
@@ -71,13 +84,14 @@ public static class CronJobManager
     /// <returns>return JobID</returns>
     public static Guid Register(Func<Task> action, string name, string category, TimeSpan sleepDuration)
     {
-        return InternalRegisterAsyncJob(action, name, category, sleepDuration);
+        return InternalRegisterJob(
+            sleepDuration, 
+            actionAsync:action,
+            name:name,
+            category:category
+        );
     }
-
-    #endregion
     
-    #region RegisterSyncJob
-
     /// <summary>
     /// Register a job on jobManager
     /// </summary>
@@ -86,7 +100,10 @@ public static class CronJobManager
     /// <returns>return JobID</returns>
     public static Guid Register(Action action, TimeSpan sleepDuration)
     {
-        return InternalRegisterJob(action, null, null, sleepDuration);
+        return InternalRegisterJob(
+            sleepDuration, 
+            actionSync:action
+        );
     }
 
     /// <summary>
@@ -98,7 +115,11 @@ public static class CronJobManager
     /// <returns>return JobID</returns>
     public static Guid Register(Action action, string name, TimeSpan sleepDuration)
     {
-        return InternalRegisterJob(action, name, null, sleepDuration);
+        return InternalRegisterJob(
+            sleepDuration, 
+            actionSync:action,
+            name:name
+        );
     }
     
     /// <summary>
@@ -111,66 +132,41 @@ public static class CronJobManager
     /// <returns>return JobID</returns>
     public static Guid Register(Action action, string name, string category, TimeSpan sleepDuration)
     {
-        return InternalRegisterJob(action, name, category, sleepDuration);
+        return InternalRegisterJob(
+            sleepDuration, 
+            actionSync:action,
+            name:name,
+            category:category
+        );
     }
 
     #endregion
-    
-    
 
     #region Private
 
-    private static Guid InternalRegisterAsyncJob(Func<Task> action, string? name, string? category, TimeSpan sleepDuration)
+    private static Guid InternalRegisterJob(TimeSpan sleepDuration, Action? actionSync = null, Func<Task>? actionAsync = null, string? name = null, string? category = null)
     {
         InternalInit();
         ArgumentNullException.ThrowIfNull(_scheduler, "You should init CronJobManager");
-        switch (name, category)
+
+        if (actionSync == null && actionAsync == null)
         {
-            case (null, null):
-            {
-                return _scheduler.RegisterCron(action, sleepDuration);
-            } 
-            case (not null, null):
-            {
-                return _scheduler.RegisterCron(action, name, sleepDuration);
-            }
-            case (not null, not null):
-            {
-                return _scheduler.RegisterCron(action, name, category, sleepDuration);
-            }
-            default:
-                return _scheduler.RegisterCron(action, sleepDuration);
+            throw new ArgumentNullException(nameof(actionSync)+" and "+nameof(actionAsync), "one of action must be not null");
         }
+
+        if (actionSync != null)
+        {
+            return _scheduler.RegisterCron(actionSync, name, category, sleepDuration);
+        }
+
+        return _scheduler.RegisterCron(actionAsync!, name, category, sleepDuration); 
     }
     
-    private static Guid InternalRegisterJob(Action action, string? name, string? category, TimeSpan sleepDuration)
-    {
-        InternalInit();
-        ArgumentNullException.ThrowIfNull(_scheduler, "You should init CronJobManager");
-        switch (name, category)
-        {
-            case (null, null):
-            {
-                return _scheduler.RegisterCron(action, sleepDuration);
-            } 
-            case (not null, null):
-            {
-                return _scheduler.RegisterCron(action, name, sleepDuration);
-            }
-            case (not null, not null):
-            {
-                return _scheduler.RegisterCron(action, name, category, sleepDuration);
-            }
-            default:
-                return _scheduler.RegisterCron(action, sleepDuration);
-        }
-    }
-    
-    private static void InternalInit(Config? config = null)
+    private static void InternalInit()
     {
         if (_scheduler != null) return;
 
-        _scheduler = new(config);
+        _scheduler = new(_config);
         _scheduler.JobResultEvent += 
             (ref ICronJob sender, ref JobResult<JobOk, JobFail> e) =>
                 JobResultEvent?.Invoke(ref sender, ref e);
