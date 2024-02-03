@@ -13,32 +13,12 @@ internal sealed class CronJob : BaseCronJob
     private readonly Func<Task>? _actionAsync;
     private readonly Action? _actionSync;
 
-    public CronJob(Func<Task> action, TimeSpan sleepDuration) : base(NameJob, CategoryJob, sleepDuration, true)
-    {
-        _actionAsync = action;
-    }
-
-    public CronJob(Func<Task> action, string name, TimeSpan sleepDuration) : base(name, CategoryJob, sleepDuration, true)
+    public CronJob(Func<Task> action, string? name, string? category, TimeSpan sleepDuration) : base(name ?? NameJob, category ?? CategoryJob, sleepDuration, true)
     {
         _actionAsync = action;
     }
     
-    public CronJob(Func<Task> action, string name, string category, TimeSpan sleepDuration) : base(name, category, sleepDuration, true)
-    {
-        _actionAsync = action;
-    }
-    
-    public CronJob(Action action, TimeSpan sleepDuration) : base(NameJob, CategoryJob, sleepDuration, false)
-    {
-        _actionSync = action;
-    }
-    
-    public CronJob(Action action, string name, TimeSpan sleepDuration) : base(name, CategoryJob, sleepDuration, false)
-    {
-        _actionSync = action;
-    }
-    
-    public CronJob(Action action, string name, string category, TimeSpan sleepDuration) : base(name, category, sleepDuration, false)
+    public CronJob(Action action, string? name, string? category, TimeSpan sleepDuration) : base(name ?? NameJob, category ?? CategoryJob, sleepDuration, false)
     {
         _actionSync = action;
     }
