@@ -78,14 +78,14 @@ Every Job return the type <b>JobResult<<i>IJobOk</i>, <i>IJobFail</i>></b> if a 
     
     // Do action
     result.Do(
-        success: (ok) => Console.WriteLine("{0} is success", ok.ID),
-        failure: (fail) => Console.WriteLine("{0} is failure. Msg:{1}", fail.Id, fail.Message)
+        success: (ok) => Console.WriteLine("{0} is success", ok.JobID),
+        failure: (fail) => Console.WriteLine("{0} is failure. Msg:{1}", fail.JobID, fail.Message)
     );
     
     // or matching
     var msg = result.Match<string>(
-        success: ok => string.Format("{0} is success", ok.ID),
-        failure: fail => string.Format("{0} is failure. Msg:{1}", fail.Id, fail.Message)
+        success: ok => string.Format("{0} is success", ok.JobID),
+        failure: fail => string.Format("{0} is failure. Msg:{1}", fail.JobID, fail.Message)
     );
     Console.WriteLine(msg);
 ```
@@ -97,10 +97,11 @@ FabulousScheduler uses a builder pattern that allows you to conveniently create 
 3. RunScheduler()
 
 ```csharp
-using FabulousScheduler.Core.Types;
 using FabulousScheduler.Cron.Interfaces;
-using FabulousScheduler.Cron;
 using FabulousScheduler.Cron.Result;
+using FabulousScheduler.Core.Types;
+using FabulousScheduler.Cron;
+
 
 var config = new Config(
     maxParallelJobExecute: 5,
@@ -113,9 +114,9 @@ CronJobManager.JobResultEvent += (ref ICronJob job, ref JobResult<JobOk, JobFail
 {
     var now = DateTime.Now;
     if (res.IsSuccess)
-        Console.WriteLine("[{0:hh:mm:ss}] {1} {2} IsSuccess", now, job.Name, res.ID);
+        Console.WriteLine("[{0:hh:mm:ss}] {1} {2}", now, job.Name, res.JobID);
     else
-        Console.WriteLine("[{0:hh:mm:ss}] {1} {2} IsFail", now, job.Name, res.ID);
+        Console.WriteLine("[{0:hh:mm:ss}] {1} {2}", now, job.Name, res.JobID);
 };
 
 // Register a job

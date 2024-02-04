@@ -1,7 +1,8 @@
-﻿using FabulousScheduler.Core.Types;
-using FabulousScheduler.Cron.Interfaces;
-using FabulousScheduler.Cron;
+﻿using FabulousScheduler.Cron.Interfaces;
 using FabulousScheduler.Cron.Result;
+using FabulousScheduler.Core.Types;
+using FabulousScheduler.Cron;
+
 
 var config = new Config(
     maxParallelJobExecute: 5,
