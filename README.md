@@ -46,8 +46,6 @@ I have developed this library for cases where you need to launch a large count o
 ## 🚀 Features <a id="features" />
 - Default queue scheduler
 - Docs for CustomCronJobManager
-- Add a job pass to eventHandler
-- Add in parama to DefaulCronManager Name, Category
 - Benchmark for JobResult type
 - Benchmark
 - Possibility set a custom thread pool to prioritize a jobs
