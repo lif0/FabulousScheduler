@@ -1,7 +1,9 @@
 <div align="center">
 <img src="./assets/logo.png" width="70%" height="auto" > 
 <h2 align="center">✨High performance cron & queue scheduler✨</h2>
-<h3 align="center">🌪️Currently a WIP and in Active development.</h3>
+<h3 align="center">Please leave a ⭐ as motivation if you liked the lib 😄
+<br>🌪️Currently a WIP and in Active development.</h3>
+
 
 ![build](https://github.com/lif0/FabulousScheduler/actions/workflows/github-actions-build.yml/badge.svg?branch=main)
 ![tests](https://github.com/lif0/FabulousScheduler/actions/workflows/github-actions-tests.yml/badge.svg)
@@ -18,23 +20,19 @@
 
 - [Motivation](#motivation)
 - [Purpose](#purpose)
-- [Related works](#related-works) (future)
 - [Features](#features)
 - [Usage](#usage)
     - [Requirements](#requirements)
     - [Installation](#installation)
-    - [Examples](#examples)
+    - [QuickStart](#examples)
 - [Benchmarks](#benchmarks) (future)
     - [Performance](#performance) (future)
-    - [Hit ratio](#hit-ratio) (future)
-- [Contribute](#contribute) (future)
 - [License](#LICENSE)
 
 
 ## 💡 Motivation <a id="motivation" />
 
 One day I came across the fact that none of a libraries can perform many tasks in parallel, while doing it on time and non-stop. I needed to grab html pages with prices for certain products from sites such as ebay, amazon, walmart, to track the best deals for certain products and send a notification with a link to these products to my client.
-<br><br>**Please leave a ⭐ as motivation if you liked the lib 😄**<br>
 
 ## 🫵 Who is this library for <a id="purpose" /> 
 I have developed this library for cases where you need to launch a large count of tasks without stopping. When you need to do a lot of IO-bound in parallel. I used this library where I had to grab the site pages at the same time once a minute and it proved to be stable.
@@ -44,12 +42,14 @@ I have developed this library for cases where you need to launch a large count o
 - And in many other projects where you have to do something on time, in large quantities and with a certain frequency
 
 ## 🚀 Features <a id="features" />
-- Default queue scheduler
-- Docs for CustomCronJobManager
-- Benchmark for JobResult type
-- Benchmark
-- Possibility set a custom thread pool to prioritize a jobs
-- Cover all project with unit tests
+- [x] Default cron scheduler
+- [ ] Default queue scheduler
+- [ ] Docs for CustomCronJobManager
+- [ ] Docs for CustomQueueJobManager
+- [ ] Benchmark for JobResult type
+- [x] Return job result via pub/sub callback event
+- [ ] Cover all project with unit tests
+- [ ] A structure for store jobs. take: O(1) push: (?) 
 
 ## 📚 Usage <a id="usage" />
 ### 📋 Requirements <a id="requirements" />
@@ -62,7 +62,7 @@ I have developed this library for cases where you need to launch a large count o
 dotnet add package FabulousScheduler
 ```
 
-### ✏️ Examples <a id="examples" />
+### ✏️ QuickStart <a id="examples" />
 
 ****
 **Main idea**
