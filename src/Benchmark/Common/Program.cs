@@ -98,7 +98,6 @@ public class MethodCoverTask
     }
 }
 
-
 public class CoverSyncAndAsyncMethodTask
 {
     private readonly Func<Task>? _actionAsync;
