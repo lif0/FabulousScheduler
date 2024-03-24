@@ -14,6 +14,7 @@
         <PackageIcon>icon.png</PackageIcon>
         <Configurations>Debug;Release;DebugWithConsole</Configurations>
         <Platforms>AnyCPU</Platforms>
+        <UserSecretsId>808ce4e4-82b4-4f87-b7f7-5cef24b592dd</UserSecretsId>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">

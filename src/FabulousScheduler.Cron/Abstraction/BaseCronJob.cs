@@ -104,7 +104,7 @@ public abstract class BaseCronJob : ICronJob
 			}
 			else
 			{
-				res = ActionJob().Result;
+				res = ActionJob().Result; // because a action is sync
 			}
 			
 			dt = DateTime.Now;

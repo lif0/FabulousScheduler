@@ -8,13 +8,12 @@ namespace FabulousScheduler.Cron.Abstraction;
 public abstract class BaseCronJobScheduler : ICronJobScheduler
 {
 #if DEBUGWITHCONSOLE
-	//Debug
 	private readonly Guid _debugId = Guid.NewGuid();
 #endif
 	
 	// sync
-	private readonly object _jobsDictLocker = new object();
-	private readonly object _mainLoopLocker = new object();
+	private readonly object _jobsDictLocker = new();
+	private readonly object _mainLoopLocker = new();
 	
 	// private
 	private Task? _mainLoop;
