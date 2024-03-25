@@ -1,4 +1,8 @@
-﻿using System.Security.Cryptography;
+﻿// ReSharper disable All
+#pragma warning disable CS8618
+#pragma warning disable CS0168
+
+using System.Security.Cryptography;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
