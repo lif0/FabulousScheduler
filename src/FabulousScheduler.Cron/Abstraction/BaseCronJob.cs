@@ -116,7 +116,6 @@ public abstract class BaseCronJob : ICronJob
 			else
 			{
 				Interlocked.Increment(ref _totalFail);
-				return new JobFail(CronJobFailEnum.FailedExecute, this.ID, $"the job {res.JobID} was finish with error");
 			}
 
 			return res;
