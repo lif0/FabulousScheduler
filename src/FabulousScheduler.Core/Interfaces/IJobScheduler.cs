@@ -6,7 +6,7 @@ namespace FabulousScheduler.Core.Interfaces;
 /// <summary>
 /// Job scheduler
 /// </summary>
-public interface IJobScheduler
+public interface IJobScheduler : IDisposable
 {
     /// <summary>
     /// Start the job scheduler

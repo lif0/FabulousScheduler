@@ -7,9 +7,10 @@ namespace FabulousScheduler.Queue.Interfaces;
 
 public interface IQueueJob: IJob
 {
-	public ushort TotalRun { get; }
+	public uint TotalRun { get; }
+	public byte? Attempts { get; }
 	public QueueJobStateEnum State { get; }
 	
 	public Task<JobResult<JobOk, JobFail>> ExecuteAsync();
-	public void SetWaiting();
+	public void ResetState();
 }

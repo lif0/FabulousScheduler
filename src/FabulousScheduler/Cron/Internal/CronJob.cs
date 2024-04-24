@@ -38,7 +38,7 @@ internal sealed class CronJob : BaseCronJob
         }
         catch (System.Exception e)
         {
-            return new JobFail(this.ID, CronJobFailEnum.InternalException, e.Message, e);
+            return new JobFail(CronJobFailEnum.InternalException, this.ID, e.Message, e);
         }
 
         return new JobOk(this.ID);

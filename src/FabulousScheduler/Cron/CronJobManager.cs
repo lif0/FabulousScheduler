@@ -7,12 +7,13 @@ using FabulousScheduler.Core.Types;
 namespace FabulousScheduler.Cron;
 
 /// <summary>
-/// A Cron job's manager
+/// Cron job's manager
 /// </summary>
 public static class CronJobManager
 {
+    private static object _sync = new object();
     private static Config? _config;
-    private static CronJobScheduler? _scheduler;
+    private static CronScheduler? _scheduler;
 
     /// <summary>
     /// Callback job's result
@@ -26,11 +27,14 @@ public static class CronJobManager
     /// <exception cref="SetConfigAfterRunSchedulingException"> if you call this method after calling <see cref="RunScheduler"/> method</exception>
     public static void SetConfig(Config config)
     {
-        if (_scheduler != null)
+        lock (_sync)
         {
-            throw new SetConfigAfterRunSchedulingException($"{nameof(_scheduler)} already initialized");
+            if (_scheduler != null)
+            {
+                throw new SetConfigAfterRunSchedulingException($"Can't set config, because {nameof(_scheduler)} already initialized");
+            }
+            _config = config;
         }
-        _config = config;
     }
 
     /// <summary>
@@ -38,8 +42,14 @@ public static class CronJobManager
     /// </summary>
     public static void RunScheduler()
     {
-        InternalInit();
-        _scheduler!.RunScheduler();
+        lock (_sync)
+        {
+            if (_scheduler != null)
+            {
+                InternalInitUnsafe();
+                _scheduler!.RunScheduler();
+            }
+        }
     }
 
     #region RegisterJob
@@ -146,8 +156,13 @@ public static class CronJobManager
 
     private static Guid InternalRegisterJob(TimeSpan sleepDuration, Action? actionSync = null, Func<Task>? actionAsync = null, string? name = null, string? category = null)
     {
-        InternalInit();
-        ArgumentNullException.ThrowIfNull(_scheduler, "You should init CronJobManager");
+        if (_scheduler != null)
+        {
+            throw new SchedulerNotRunnableException(
+                $"Scheduler is not a runnable, just call {nameof(CronJobManager)}.RunScheduler() for fix that, before when begin register jobs");
+        }
+
+        ArgumentNullException.ThrowIfNull(_scheduler, "");
 
         if (actionSync == null && actionAsync == null)
         {
@@ -162,10 +177,8 @@ public static class CronJobManager
         return _scheduler.RegisterCron(actionAsync!, name, category, sleepDuration); 
     }
     
-    private static void InternalInit()
+    private static void InternalInitUnsafe()
     {
-        if (_scheduler != null) return;
-
         _scheduler = new(_config);
         _scheduler.JobResultEvent += 
             (ref ICronJob sender, ref JobResult<JobOk, JobFail> e) =>

@@ -8,9 +8,9 @@ namespace FabulousScheduler.Cron.Internal;
 /// </summary>
 [SuppressMessage("ReSharper", "RedundantBaseQualifier")]
 [SuppressMessage("ReSharper", "NotAccessedField.Local")]
-internal sealed class CronJobScheduler : BaseCronJobScheduler
+internal sealed class CronScheduler : BaseCronScheduler
 {
-    internal CronJobScheduler(Config? config) : base(config)
+    internal CronScheduler(Config? config) : base(config)
     {
     }
 

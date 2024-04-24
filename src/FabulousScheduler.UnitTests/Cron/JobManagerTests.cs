@@ -5,7 +5,6 @@ using FabulousScheduler.Cron.Enums;
 using FabulousScheduler.Core.Types;
 using FabulousScheduler.Cron;
 using System.Diagnostics;
-using Xunit.Abstractions;
 
 
 namespace Job.Core.Tests.Cron;
@@ -23,7 +22,7 @@ public class JobManagerTests
 
 		// init
 		var config = new Config( maxParallelJobExecute: 1, sleepAfterCheck: TimeSpan.FromHours(1));
-		var manager = new TestCronJobScheduler(config);
+		var manager = new TestCronScheduler(config);
 		void ManagerOnJobResultEvent(ref ICronJob sender, ref JobResult<JobOk, JobFail> e)
 		{
 			sw.Stop();
@@ -45,8 +44,8 @@ public class JobManagerTests
 		Assert.Equal(1, countCall);
 		Assert.Equal(oneTimeJobMs,sw.Elapsed.TotalMilliseconds, 10.0f);
 		
-		Assert.Equal(1, job.TotalRun);
-		Assert.Equal(1, job.TotalFail);
+		Assert.Equal(1u, job.TotalRun);
+		Assert.Equal(1u, job.TotalFail);
 		Assert.Null(job.LastSuccessExecute);
 		Assert.NotNull(job.LastExecute);
 		Assert.Equal(CronJobStateEnum.Ready, job.State);
@@ -64,7 +63,7 @@ public class JobManagerTests
 
 		// init
 		var config = new Config(maxParallelJobExecute: 1, sleepAfterCheck: TimeSpan.FromHours(1));
-		var manager = new TestCronJobScheduler(config);
+		var manager = new TestCronScheduler(config);
 
 		void ManagerOnJobResultEvent(ref ICronJob sender, ref JobResult<JobOk, JobFail> e)
 		{
@@ -89,8 +88,8 @@ public class JobManagerTests
 		Assert.Equal(1, countCall);
 		Assert.Equal(oneTimeJobMs,sw.Elapsed.TotalMilliseconds, 10.0f);
 		
-		Assert.Equal(1, job.TotalRun);
-		Assert.Equal(0, job.TotalFail);
+		Assert.Equal(1u, job.TotalRun);
+		Assert.Equal(0u, job.TotalFail);
 		Assert.NotNull(job.LastSuccessExecute);
 		Assert.NotNull(job.LastExecute);
 		Assert.Equal(CronJobStateEnum.Ready, job.State);
@@ -108,7 +107,7 @@ public class JobManagerTests
 	
 		// init
 		var config = new Config( maxParallelJobExecute: parallelJobs, sleepAfterCheck: TimeSpan.FromMilliseconds(50));
-		var manager = new TestCronJobScheduler(config);
+		var manager = new TestCronScheduler(config);
 		manager.JobResultEvent += (ref ICronJob _, ref JobResult<JobOk, JobFail> e) =>
 		{
 			hash.AddOrUpdate(e.JobID, _ => 1, (_, b) => ++b);
@@ -133,11 +132,11 @@ public class JobManagerTests
 		await tcs.Task;
 
 		long uniqCountCall = jobs.Count(x => x.TotalRun == 1);
-		long countCall = jobs.Sum(x => x.TotalRun);
-		double expectedWorkTimeSec = Helper.GuessDurationInMilleseconds(countJobs, parallelJobs, oneTimeJobMs);
+		ulong countCall = jobs.SumUlong(x => x.TotalRun);
+		double expectedWorkTimeSec = Helper.GuessDurationInMilliseconds(countJobs, parallelJobs, oneTimeJobMs);
 		
-		Assert.Equal(countCall, uniqCountCall);
-		Assert.Equal(countJobs, countCall);
+		Assert.Equal(countCall, (ulong)uniqCountCall);
+		Assert.Equal((ulong)countJobs, countCall);
 		Assert.Equal(expectedWorkTimeSec,sw.Elapsed.TotalMilliseconds,300f/*0.3 of sec*/);
 	}
 
@@ -153,7 +152,7 @@ public class JobManagerTests
 	
 		// init
 		var config = new Config( maxParallelJobExecute: parallelJobs, sleepAfterCheck: TimeSpan.FromMilliseconds(50));
-		var manager = new TestCronJobScheduler(config);
+		var manager = new TestCronScheduler(config);
 		manager.JobResultEvent += (ref ICronJob _, ref JobResult<JobOk, JobFail> e) =>
 		{
 			hash.AddOrUpdate(e.JobID, _ => 1, (_, b) => ++b);
@@ -178,11 +177,11 @@ public class JobManagerTests
 		await tcs.Task;
 
 		long uniqCountCall = jobs.Count(x => x.TotalRun == 1);
-		long countCall = jobs.Sum(x => x.TotalRun);
-		double expectedWorkTimeSec = Helper.GuessDurationInMilleseconds(countJobs, parallelJobs, oneTimeJobMs);
+		ulong countCall = jobs.SumUlong(x => x.TotalRun);
+		double expectedWorkTimeSec = Helper.GuessDurationInMilliseconds(countJobs, parallelJobs, oneTimeJobMs);
 		
-		Assert.Equal(countCall, uniqCountCall);
-		Assert.Equal(countJobs, countCall);
+		Assert.Equal(countCall, (ulong)uniqCountCall);
+		Assert.Equal((ulong)countJobs, countCall);
 		Assert.Equal(expectedWorkTimeSec,sw.Elapsed.TotalMilliseconds,5000f/*5 sec*/);
 	}
 	
@@ -198,7 +197,7 @@ public class JobManagerTests
 	
 		// init
 		var config = new Config( maxParallelJobExecute: parallelJobs, sleepAfterCheck: TimeSpan.FromMilliseconds(50));
-		var manager = new TestCronJobScheduler(config);
+		var manager = new TestCronScheduler(config);
 		manager.JobResultEvent += (ref ICronJob _, ref JobResult<JobOk, JobFail> e) =>
 		{
 			hash.AddOrUpdate(e.JobID, _ => 1, (_, b) => ++b);
@@ -223,11 +222,11 @@ public class JobManagerTests
 		await tcs.Task;
 
 		long uniqCountCall = jobs.Count(x => x.TotalRun == 1);
-		long countCall = jobs.Sum(x => x.TotalRun);
-		double expectedWorkTimeSec = Helper.GuessDurationInMilleseconds(countJobs, parallelJobs, oneTimeJobMs);
+		ulong countCall = jobs.SumUlong(x => x.TotalRun);
+		double expectedWorkTimeSec = Helper.GuessDurationInMilliseconds(countJobs, parallelJobs, oneTimeJobMs);
 		
-		Assert.Equal(countCall, uniqCountCall);
-		Assert.Equal(countJobs, countCall);
+		Assert.Equal(countCall, (ulong)uniqCountCall);
+		Assert.Equal((ulong)countJobs, countCall);
 		//Assert.Equal(expectedWorkTimeSec,sw.Elapsed.TotalMilliseconds,1000f/*1 sec*/);
 	}
 	
@@ -242,7 +241,7 @@ public class JobManagerTests
 	
 		// init
 		var config = new Config( maxParallelJobExecute: parallelJobs, sleepAfterCheck: TimeSpan.FromMilliseconds(10));
-		var manager = new TestCronJobScheduler(config);
+		var manager = new TestCronScheduler(config);
 		manager.JobResultEvent += (ref ICronJob _, ref JobResult<JobOk, JobFail> e) =>
 		{
 			hash.AddOrUpdate(e.JobID, _ => 1, (_, b) => ++b);
@@ -262,7 +261,7 @@ public class JobManagerTests
 		
 		Assert.Equal(countJobs, hash.Count);
 		Assert.Equal(countJobs, hash.Sum(x=> x.Value));
-		Assert.Equal(countJobs, jobs.Sum(x => x.TotalRun));
+		Assert.Equal((ulong)countJobs, jobs.SumUlong(x => x.TotalRun));
 		Assert.True(allHasLastExecute);
 	}
 	
@@ -278,7 +277,7 @@ public class JobManagerTests
 	
 		// init
 		var config = new Config( maxParallelJobExecute: parallelJobs, sleepAfterCheck: TimeSpan.FromMilliseconds(10));
-		var manager = new TestCronJobScheduler(config);
+		var manager = new TestCronScheduler(config);
 		manager.JobResultEvent += (ref ICronJob _, ref JobResult<JobOk, JobFail> e) =>
 		{
 			Interlocked.Increment(ref countCall);
@@ -304,7 +303,7 @@ public class JobManagerTests
 		
 		Assert.Equal(countJobs, hash.Count);
 		Assert.Equal(countJobs*2, hash.Sum(x=> x.Value));
-		Assert.Equal(countJobs*2, jobs.Sum(x => x.TotalRun));
+		Assert.Equal((ulong)(countJobs*2u), jobs.SumUlong(x => x.TotalRun));
 		Assert.True(allHasLastExecute);
 	}
 }

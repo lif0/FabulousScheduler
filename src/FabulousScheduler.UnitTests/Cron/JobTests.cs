@@ -13,8 +13,8 @@ public class JobTests
 
 		Assert.NotNull(job.LastExecute);
 		Assert.Null(job.LastSuccessExecute);
-		Assert.Equal(1, job.TotalRun);
-		Assert.Equal(1, job.TotalFail);
+		Assert.Equal(1u, job.TotalRun);
+		Assert.Equal(1u, job.TotalFail);
 
 		Assert.Equal(CronJobFailEnum.FailedExecute,  res.GetFail()!.Reason);
 		Assert.Equal(CronJobStateEnum.Ready, job.State);
@@ -28,8 +28,8 @@ public class JobTests
 
 		Assert.NotNull(job.LastExecute);
 		Assert.Null(job.LastSuccessExecute);
-		Assert.Equal(1, job.TotalRun);
-		Assert.Equal(1, job.TotalFail);
+		Assert.Equal(1u, job.TotalRun);
+		Assert.Equal(1u, job.TotalFail);
 
 		Assert.Equal(CronJobFailEnum.InternalException,  res.GetFail()!.Reason);
 		Assert.Equal(CronJobStateEnum.Ready, job.State);
@@ -45,8 +45,8 @@ public class JobTests
 
 		Assert.NotNull(job.LastExecute);
 		Assert.NotNull(job.LastSuccessExecute);
-		Assert.Equal(1, job.TotalRun);
-		Assert.Equal(0, job.TotalFail);
+		Assert.Equal(1u, job.TotalRun);
+		Assert.Equal(0u, job.TotalFail);
 
 		Assert.Equal(CronJobFailEnum.IncorrectState,  res.GetFail()!.Reason);
 		Assert.Equal(CronJobStateEnum.Sleeping, job.State);
@@ -61,8 +61,8 @@ public class JobTests
 
 		Assert.Null(job.LastExecute);
 		Assert.Null(job.LastSuccessExecute);
-		Assert.Equal(0, job.TotalRun);
-		Assert.Equal(0, job.TotalFail);
+		Assert.Equal(0u, job.TotalRun);
+		Assert.Equal(0u, job.TotalFail);
 
 		Assert.Equal(CronJobFailEnum.Disposed,  res.GetFail()!.Reason);
 		Assert.Equal(CronJobStateEnum.Disposed, job.State);
@@ -78,8 +78,8 @@ public class JobTests
 		
 		Assert.NotNull(job.LastExecute);
 		Assert.NotNull(job.LastSuccessExecute);
-		Assert.Equal(1, job.TotalRun);
-		Assert.Equal(0, job.TotalFail);
+		Assert.Equal(1u, job.TotalRun);
+		Assert.Equal(0u, job.TotalFail);
 
 		Assert.Equal(CronJobStateEnum.Sleeping, job.State);
 	}
@@ -94,8 +94,8 @@ public class JobTests
 		
 		Assert.NotNull(job.LastExecute);
 		Assert.NotNull(job.LastSuccessExecute);
-		Assert.Equal(1, job.TotalRun);
-		Assert.Equal(0, job.TotalFail);
+		Assert.Equal(1u, job.TotalRun);
+		Assert.Equal(0u, job.TotalFail);
 
 		Assert.Equal(CronJobStateEnum.Ready, job.State);
 	}
@@ -110,8 +110,8 @@ public class JobTests
 		
 		Assert.NotNull(job.LastExecute);
 		Assert.NotNull(job.LastSuccessExecute);
-		Assert.Equal(1, job.TotalRun);
-		Assert.Equal(0, job.TotalFail);
+		Assert.Equal(1u, job.TotalRun);
+		Assert.Equal(0u, job.TotalFail);
 
 		Assert.Equal(CronJobStateEnum.Ready, job.State);
 	}
@@ -126,8 +126,8 @@ public class JobTests
 		
 		Assert.NotNull(job.LastExecute);
 		Assert.NotNull(job.LastSuccessExecute);
-		Assert.Equal(1, job.TotalRun);
-		Assert.Equal(0, job.TotalFail);
+		Assert.Equal(1u, job.TotalRun);
+		Assert.Equal(0u, job.TotalFail);
 
 		Assert.Equal(CronJobStateEnum.Ready, job.State);
 	}
@@ -142,8 +142,8 @@ public class JobTests
 		
 		Assert.NotNull(job.LastExecute);
 		Assert.NotNull(job.LastSuccessExecute);
-		Assert.Equal(1, job.TotalRun);
-		Assert.Equal(0, job.TotalFail);
+		Assert.Equal(1u, job.TotalRun);
+		Assert.Equal(0u, job.TotalFail);
 
 		Assert.Equal(CronJobStateEnum.Ready, job.State);
 	}
@@ -160,8 +160,8 @@ public class JobTests
 		
 		Assert.NotNull(job.LastExecute);
 		Assert.Null(job.LastSuccessExecute);
-		Assert.Equal(1, job.TotalRun);
-		Assert.Equal(1, job.TotalFail);
+		Assert.Equal(1u, job.TotalRun);
+		Assert.Equal(1u, job.TotalFail);
 		Assert.Equal(CronJobStateEnum.Ready, job.State);
 		
 		Assert.Equal(oneTimeJobMs, sw.Elapsed.TotalMilliseconds, 10.0f );
@@ -179,8 +179,8 @@ public class JobTests
 
 		Assert.NotNull(job.LastExecute);
 		Assert.NotNull(job.LastSuccessExecute);
-		Assert.Equal(1, job.TotalRun);
-		Assert.Equal(0, job.TotalFail);
+		Assert.Equal(1u, job.TotalRun);
+		Assert.Equal(0u, job.TotalFail);
 		Assert.Equal(CronJobStateEnum.Sleeping, job.State);
 		
 		Assert.Equal(oneTimeJobMs, sw.Elapsed.TotalMilliseconds, 5.0f );

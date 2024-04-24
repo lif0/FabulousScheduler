@@ -7,7 +7,7 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
 
-BenchmarkRunner.Run<MethodCoverTask>();
+BenchmarkRunner.Run<CoverSyncAndAsyncMethodTask>();
 
 [SimpleJob(RuntimeMoniker.Net70)]
 [MemoryDiagnoser]
@@ -101,6 +101,8 @@ public class MethodCoverTask
     }
 }
 
+[SimpleJob(RuntimeMoniker.Net70)]
+[MemoryDiagnoser]
 public class CoverSyncAndAsyncMethodTask
 {
     private readonly Func<Task>? _actionAsync;

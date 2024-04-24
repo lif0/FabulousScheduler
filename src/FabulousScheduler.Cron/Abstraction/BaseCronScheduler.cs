@@ -5,7 +5,7 @@ using FabulousScheduler.Cron.Interfaces;
 
 namespace FabulousScheduler.Cron.Abstraction;
 
-public abstract class BaseCronJobScheduler : ICronJobScheduler
+public abstract class BaseCronScheduler : ICronJobScheduler
 {
 #if DEBUGWITHCONSOLE
 	private readonly Guid _debugId = Guid.NewGuid();
@@ -29,7 +29,7 @@ public abstract class BaseCronJobScheduler : ICronJobScheduler
 	// public
 	public event ICronJobScheduler.JobResultEventHandler? JobResultEvent;
 
-	protected BaseCronJobScheduler(Config? config)
+	protected BaseCronScheduler(Config? config)
 	{
 		Config = config ?? Config.Default;
 		
@@ -85,7 +85,7 @@ public abstract class BaseCronJobScheduler : ICronJobScheduler
 		{
 			if(_mainLoop != null) return;
 
-			_mainLoop = Task.Factory.StartNew(ExecutableLoop, _cancellationTokenSource.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+			_mainLoop = Task.Factory.StartNew(ExecutableLoop, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
 		}
 	}
 	
@@ -114,7 +114,7 @@ public abstract class BaseCronJobScheduler : ICronJobScheduler
 		
 		foreach (var job in readyJobs)
 		{
-			job.SetStateWaiting();
+			job.ResetState();
 			_queue.Enqueue(job);
 		}
 
@@ -194,4 +194,12 @@ public abstract class BaseCronJobScheduler : ICronJobScheduler
 	}
 	
 	#endregion
+
+	public void Dispose()
+	{
+		_cancellationTokenSource.Cancel();
+		_cancellationTokenSource.Dispose();
+		_mainLoop?.Dispose();
+		_jobExecutorLimiter.Dispose();
+	}
 }
