@@ -25,10 +25,7 @@ internal static class Helper
 		{
 			await Task.Delay(-1, cancellationToken);
 		}
-		catch (Exception)
-		{
-			// ignored
-		}
+		catch (Exception) { /* ignored */ }
 	}
 
 	public static ulong SumUlong<TSource>(

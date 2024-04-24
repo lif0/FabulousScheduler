@@ -22,22 +22,21 @@ public class JobManagerTests
 
 		// init
 		var config = new Config( maxParallelJobExecute: 1, sleepAfterCheck: TimeSpan.FromHours(1));
-		var manager = new TestCronScheduler(config);
+		var scheduler = new TestCronScheduler(config);
 		void ManagerOnJobResultEvent(ref ICronJob sender, ref JobResult<JobOk, JobFail> e)
 		{
 			sw.Stop();
 			Interlocked.Increment(ref countCall);
 			tcs.SetResult();
 		}
-		manager.JobResultEvent += ManagerOnJobResultEvent;
+		scheduler.JobResultEvent += ManagerOnJobResultEvent;
 
 		// test
 		var job = new Job_Fail("okFail", sleepDuration: TimeSpan.Zero, jobSimulateWorkTime: TimeSpan.FromMilliseconds(oneTimeJobMs));
-		var registered = manager.Register(job);
-		manager.RunScheduler();
+		var registered = scheduler.Register(job);
+		scheduler.RunScheduler();
 		sw.Start();
 
-		await Task.Delay(100);
 		await tcs.Task;
 
 		Assert.True(registered);
@@ -63,7 +62,7 @@ public class JobManagerTests
 
 		// init
 		var config = new Config(maxParallelJobExecute: 1, sleepAfterCheck: TimeSpan.FromHours(1));
-		var manager = new TestCronScheduler(config);
+		var scheduler = new TestCronScheduler(config);
 
 		void ManagerOnJobResultEvent(ref ICronJob sender, ref JobResult<JobOk, JobFail> e)
 		{
@@ -72,18 +71,17 @@ public class JobManagerTests
 			tcs.SetResult();
 			
 		}
-		manager.JobResultEvent += ManagerOnJobResultEvent;
+		scheduler.JobResultEvent += ManagerOnJobResultEvent;
 		
 		// test
 		var job = new Job_Ok("okJob", sleepDuration: TimeSpan.Zero, jobSimulateWorkTime: TimeSpan.FromMilliseconds(oneTimeJobMs));
-		var registered = manager.Register(job);
+		var registered = scheduler.Register(job);
 		Assert.True(registered);
-		manager.RunScheduler();
+		scheduler.RunScheduler();
 		sw.Start();
-		
-		await Task.Delay(100);
+
 		await tcs.Task;
-		manager.JobResultEvent -= ManagerOnJobResultEvent;
+		scheduler.JobResultEvent -= ManagerOnJobResultEvent;
 
 		Assert.Equal(1, countCall);
 		Assert.Equal(oneTimeJobMs,sw.Elapsed.TotalMilliseconds, 10.0f);
@@ -188,7 +186,7 @@ public class JobManagerTests
 	[Fact]
 	public async void Time_50k()
 	{
-		int countJobs = 50000, oneTimeJobMs = 5, parallelJobs = Environment.ProcessorCount*10;
+		int countJobs = 50000, oneTimeJobMs = 3, parallelJobs = Environment.ProcessorCount*20;
 	
 		// helper
 		var hash = new ConcurrentDictionary<Guid, byte>();
@@ -269,21 +267,20 @@ public class JobManagerTests
 	public async void Count_OutSleepPeriod()
 	{
 		int countJobs = 1000, oneTimeJobMs = 5, sleepDurationSec = 1, parallelJobs = Environment.ProcessorCount*10;
-		
+
 		// helper
-		int countCall = 0;
+		long countCall = 0;
 		var hash = new ConcurrentDictionary<Guid, byte>();
 		CancellationTokenSource cts = new();
 	
 		// init
-		var config = new Config( maxParallelJobExecute: parallelJobs, sleepAfterCheck: TimeSpan.FromMilliseconds(10));
-		var manager = new TestCronScheduler(config);
-		manager.JobResultEvent += (ref ICronJob _, ref JobResult<JobOk, JobFail> e) =>
+		var config = new Config( maxParallelJobExecute: parallelJobs, sleepAfterCheck: TimeSpan.FromMilliseconds(20) );
+		var scheduler = new TestCronScheduler(config);
+		scheduler.JobResultEvent += (ref ICronJob _, ref JobResult<JobOk, JobFail> e) =>
 		{
-			Interlocked.Increment(ref countCall);
 			hash.AddOrUpdate(e.JobID, _ => 1, (_, b) => ++b);
-			
-			if (countCall == countJobs*2)
+			Interlocked.Increment(ref countCall);
+			if (Interlocked.Read(ref countCall) == countJobs*2)
 			{
 				cts.Cancel();
 			}
@@ -295,8 +292,8 @@ public class JobManagerTests
 		{
 			jobs.Add(new Job_Ok(i.ToString(), TimeSpan.FromSeconds(sleepDurationSec), TimeSpan.FromMilliseconds(oneTimeJobMs)));
 		}
-		manager.Register(jobs);
-		manager.RunScheduler();
+		scheduler.Register(jobs);
+		scheduler.RunScheduler();
 
 		await Helper.Sleep(cts.Token);
 		bool allHasLastExecute = jobs.TrueForAll(x => x.LastSuccessExecute.HasValue);
