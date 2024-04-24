@@ -263,7 +263,7 @@ public class JobManagerTests
 		Assert.True(allHasLastExecute);
 	}
 	
-	[Fact]
+	[Fact] // TODO KGG:> есть ощущение что тест соствлен неверно, тут нужно убедить что каждая задача запускается в верном промежутке, а то что написанно сейчас, тестирует не понятно что
 	public async void Count_OutSleepPeriod()
 	{
 		int countJobs = 1000, oneTimeJobMs = 5, sleepDurationSec = 1, parallelJobs = Environment.ProcessorCount*10;
