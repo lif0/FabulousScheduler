@@ -12,8 +12,8 @@ public abstract class BaseCronJob : ICronJob
 	private readonly object _lock = new object();
 
 	private bool _disposed;
-	private long _totalFail;
-	private long _totalRun;
+	private ulong _totalFail;
+	private ulong _totalRun;
 	private CronJobStateEnum _state;
 
 	#endregion
@@ -47,8 +47,8 @@ public abstract class BaseCronJob : ICronJob
 	public DateTime? LastExecute { get; private set; }
 	public DateTime? LastSuccessExecute { get; private set; }
 	
-	public long TotalRun => _totalRun;
-	public long TotalFail => _totalFail;
+	public ulong TotalRun => _totalRun;
+	public ulong TotalFail => _totalFail;
 
 	#endregion
 	
@@ -79,13 +79,13 @@ public abstract class BaseCronJob : ICronJob
 			if (_disposed)
 			{
 				_state = CronJobStateEnum.Disposed;
-				return new JobFail(this.ID, CronJobFailEnum.Disposed, $"The job {Name} was disposed", null);
+				return new JobFail(CronJobFailEnum.Disposed, this.ID, $"The job {Name} was disposed");
 			}
 			
 			if (_state is not (CronJobStateEnum.Ready or CronJobStateEnum.Waiting))
 			{
-				string msg = $"Incorrect state run the job. Job {Name} current state: {State}";
-				return new JobFail(this.ID, CronJobFailEnum.IncorrectState, msg, null);
+				string msg = $"Incorrect state run the job. Job has state: {State}";
+				return new JobFail(CronJobFailEnum.IncorrectState, this.ID, msg);
 			}
 
 			_state = CronJobStateEnum.Running;
@@ -104,7 +104,7 @@ public abstract class BaseCronJob : ICronJob
 			}
 			else
 			{
-				res = ActionJob().Result; // because a action is sync
+				res = ActionJob().Result; // because action is sync
 			}
 			
 			dt = DateTime.Now;
@@ -116,6 +116,7 @@ public abstract class BaseCronJob : ICronJob
 			else
 			{
 				Interlocked.Increment(ref _totalFail);
+				return new JobFail(CronJobFailEnum.FailedExecute, this.ID, $"the job {res.JobID} was finish with error");
 			}
 
 			return res;
@@ -123,7 +124,7 @@ public abstract class BaseCronJob : ICronJob
 		catch (Exception e)
 		{
 			Interlocked.Increment(ref _totalFail);
-			return new JobFail(this.ID,CronJobFailEnum.InternalException, e.Message, e);
+			return new JobFail(CronJobFailEnum.InternalException, this.ID, e.Message, e);
 		}
 		finally
 		{
@@ -132,7 +133,7 @@ public abstract class BaseCronJob : ICronJob
 		}
 	}
 
-	void ICronJob.SetStateWaiting()
+	void ICronJob.ResetState()
 	{
 		lock (_lock)
 		{
@@ -152,7 +153,7 @@ public abstract class BaseCronJob : ICronJob
 		}
 	}
 
-	public ValueTask DisposeAsync()
+	public ValueTask DisposeAsync() // TODO KGG :> выглядит тупо, убери если нужно
 	{
 		Dispose();
 		return ValueTask.CompletedTask;

@@ -1,7 +1,6 @@
-using System.Diagnostics.CodeAnalysis;
-using FabulousScheduler.Core.Interfaces;
-using FabulousScheduler.Core.Interfaces.Result;
 using FabulousScheduler.Queue.Enums;
+using System.Diagnostics.CodeAnalysis;
+using FabulousScheduler.Core.Interfaces.Result;
 
 namespace FabulousScheduler.Queue.Result;
 
@@ -11,10 +10,9 @@ namespace FabulousScheduler.Queue.Result;
 [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
 public class JobFail : Exception, IJobFail  
 {
-	public JobFail(Guid id, string name, QueueJobFailEnum reason, string message, Exception? exception): base(message)
+	public JobFail(QueueJobFailEnum reason, Guid jobID, string message, Exception? exception = null): base(message)
 	{
-		ID = id;
-		Name = name;
+		ID = jobID;
 		Reason = reason;
 		Exception = exception;
 	}
@@ -23,12 +21,7 @@ public class JobFail : Exception, IJobFail
 	/// <inheritdoc/>
 	/// </summary>
 	public Guid ID { get; }
-	
-	/// <summary>
-	/// <inheritdoc cref="IJob.Name"/>
-	/// </summary>
-	public string Name { get; }
-	
+
 	/// <summary>
 	/// <inheritdoc cref="QueueJobFailEnum"/>
 	/// </summary>
@@ -38,5 +31,4 @@ public class JobFail : Exception, IJobFail
 	/// Exception
 	/// </summary>
 	public Exception? Exception { get; }
-
 }

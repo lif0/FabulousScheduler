@@ -16,13 +16,9 @@ public class JobOk : IJobOk
 		Name = name;
 	}
 
-	/// <summary>
-	/// <inheritdoc/>
-	/// </summary>
+	/// <inheritdoc cref="IJob.ID"/>
 	public Guid ID { get; }
 	
-	/// <summary>
-	/// <inheritdoc cref="IJob.ID"/>
-	/// </summary>
+	/// <inheritdoc cref="IJob.Name"/>
 	public string Name { get; }
 }

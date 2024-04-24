@@ -1,21 +1,22 @@
 // ReSharper disable UnusedMethodReturnValue.Global
-using FabulousScheduler.Core.Types;
-using FabulousScheduler.Cron;
-using FabulousScheduler.Cron.Abstraction;
-using FabulousScheduler.Cron.Enums;
-using FabulousScheduler.Cron.Interfaces;
-using FabulousScheduler.Cron.Result;
 // ReSharper disable ClassNeverInstantiated.Global
+using FabulousScheduler.Cron;
+using FabulousScheduler.Cron.Enums;
+using FabulousScheduler.Core.Types;
+using FabulousScheduler.Cron.Result;
+using FabulousScheduler.Cron.Interfaces;
+using FabulousScheduler.Cron.Abstraction;
 
 namespace Job.Core.Tests.Cron;
 
 internal static class Helper
 {
-	public static double GuessDurationInMilleseconds(int countJobs, int parallelCount, double oneJobExecutionInMilliseconds)
+	public static double GuessDurationInMilliseconds(int countJobs, int parallelCount, double oneJobExecutionInMilliseconds)
 	{
 		parallelCount = (countJobs >= parallelCount ? parallelCount : 1);
 
-		return (countJobs / parallelCount) * oneJobExecutionInMilliseconds;
+		// ReSharper disable once PossibleLossOfFraction
+		return countJobs / parallelCount * oneJobExecutionInMilliseconds;
 	}
 
 	public static async Task Sleep(CancellationToken cancellationToken)
@@ -29,11 +30,25 @@ internal static class Helper
 			// ignored
 		}
 	}
+
+	public static ulong SumUlong<TSource>(
+		this IEnumerable<TSource> source,
+		Func<TSource, ulong> selector)
+	{
+		ulong res = 0u;
+		
+		foreach (var s in source)
+		{
+			res += selector.Invoke(s);
+		}
+		
+		return res;
+	}
 }
 
 internal class CronJobRandomResult : BaseCronJob
 {
-	public TimeSpan JobSimulateWorkTime { get; }
+	private TimeSpan JobSimulateWorkTime { get; }
 
 	public CronJobRandomResult(string name, TimeSpan sleepDuration, TimeSpan jobSimulateWorkTime) : base(name,"test random result", sleepDuration, true)
 	{
@@ -49,13 +64,13 @@ internal class CronJobRandomResult : BaseCronJob
 			return new JobOk(this.ID);
 		}
 
-		return new JobFail(this.ID, CronJobFailEnum.FailedExecute, "test error", null);
+		return new JobFail(CronJobFailEnum.FailedExecute, this.ID, "test error");
 	}
 }
 
 internal class CronJobOkResult : BaseCronJob
 {
-	public TimeSpan JobSimulateWorkTime { get; }
+	private TimeSpan JobSimulateWorkTime { get; }
 
 	public CronJobOkResult(string name, TimeSpan sleepDuration, TimeSpan jobSimulateWorkTime) : base(name,"test success", sleepDuration, true)
 	{
@@ -72,7 +87,7 @@ internal class CronJobOkResult : BaseCronJob
 
 internal class CronJobFailedExecuteResult : BaseCronJob
 {
-	public TimeSpan JobSimulateWorkTime { get; }
+	private TimeSpan JobSimulateWorkTime { get; }
 
 	public CronJobFailedExecuteResult(string name, TimeSpan sleepDuration, TimeSpan jobSimulateWorkTime) : base(name,"test error", sleepDuration, true)
 	{
@@ -82,7 +97,7 @@ internal class CronJobFailedExecuteResult : BaseCronJob
 	protected override async Task<JobResult<JobOk, JobFail>> ActionJob()
 	{
 		await Task.Delay(JobSimulateWorkTime);
-		return new JobFail(this.ID, CronJobFailEnum.FailedExecute, "test error", null);
+		return new JobFail(CronJobFailEnum.FailedExecute, this.ID, "test error");
 	}
 
 	
@@ -105,9 +120,9 @@ internal class CronJobInternalExceptionResult : BaseCronJob
 
 }
 
-internal class TestCronJobScheduler : BaseCronJobScheduler
+internal class TestCronScheduler : BaseCronScheduler
 {
-	public TestCronJobScheduler(Config? config) : base(config) { }
+	public TestCronScheduler(Config? config) : base(config) { }
 
 	public new bool Register(ICronJob job)
 	{

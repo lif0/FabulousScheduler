@@ -23,7 +23,7 @@ public enum QueueJobFailEnum
 	///	When a job is failed
 	/// </summary>
 	FailedExecute,
-	
+
 	/// <summary>
 	/// Job is disposed
 	/// </summary>

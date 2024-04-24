@@ -10,7 +10,7 @@ namespace FabulousScheduler.Cron.Result;
 [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
 public sealed class JobFail : IJobFail
 {
-	public JobFail(Guid jobID, CronJobFailEnum reason, string message, Exception? exception)
+	public JobFail(CronJobFailEnum reason, Guid jobID, string message, Exception? exception = null)
 	{
 		ID = jobID;
 		Reason = reason;

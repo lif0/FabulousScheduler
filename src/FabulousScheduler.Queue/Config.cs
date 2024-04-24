@@ -2,21 +2,17 @@ namespace FabulousScheduler.Queue;
 
 public class Config
 {
-	public Config(int maxParallelJobExecute, TimeSpan sleepIfQueueIsEmpty)
+	public Config(int maxParallelJobExecute)
 	{
 		MaxParallelJobExecute = maxParallelJobExecute;
-
-		if (sleepIfQueueIsEmpty == TimeSpan.Zero || sleepIfQueueIsEmpty == TimeSpan.MinValue)
-		{
-			SleepIfQueueIsEmpty = TimeSpan.FromSeconds(10);
-		}
-		else
-		{
-			SleepIfQueueIsEmpty = sleepIfQueueIsEmpty;
-		}
-		
 	}
 
 	public int MaxParallelJobExecute { get; }
-	public TimeSpan SleepIfQueueIsEmpty { get; }
+
+	/// <summary>
+	/// Default configs
+	/// </summary>
+	/// <para><see cref="MaxParallelJobExecute"/> is ProcessorCount * 2</para>
+	public static Config Default =>
+		new(maxParallelJobExecute: Environment.ProcessorCount * 2);
 }

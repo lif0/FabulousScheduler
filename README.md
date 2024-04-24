@@ -46,14 +46,19 @@ I have developed this library for cases where you need to launch a large count o
 - And in many other projects where you have to do something on time, in large quantities and with a certain frequency
 
 ## 🚀 Features <a id="features" />
-- [x] Default cron scheduler
-- [ ] Default queue scheduler
+- [x] Implement default cron scheduler
+- [ ] Implement default queue scheduler
 - [ ] Docs for CustomCronJobManager
 - [ ] Docs for CustomQueueJobManager
 - [ ] Benchmark for JobResult type
 - [x] Return job result via pub/sub callback event
-- [ ] Cover all project with unit tests
-- [ ] A structure for store jobs. take: O(1) push: (?) 
+- [ ] Cover queue scheduler unit tests
+- [ ] Cover InMemoryQueue unit tests
+- [ ] Implement PSQLQueue
+- [ ] Cover PSQLQueue unit tests 
+- [x] Cover cron scheduler unit tests
+- [x] Cover queue scheduler unit tests
+- [ ] A structure for store jobs. take: O(1) push: (?)
 
 ## 📚 Usage <a id="usage" />
 ### 📋 Requirements <a id="requirements" />
