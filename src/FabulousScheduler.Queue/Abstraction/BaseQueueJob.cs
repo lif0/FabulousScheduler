@@ -85,6 +85,10 @@ public abstract class BaseQueueJob : IQueueJob
 			{
 				LastSuccessExecute = dt;
 			}
+			// else
+			// {
+			// 	Interlocked.Increment(ref _totalFail);
+			// }
 
 			return res;
 		}
