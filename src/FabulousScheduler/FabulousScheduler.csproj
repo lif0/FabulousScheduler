@@ -13,7 +13,6 @@
         <IsPackable>true</IsPackable>
         <PackageIcon>icon.png</PackageIcon>
         <Version>1.0.0</Version>
-        <PackageLicenseUrl>https://github.com/lif0/FabulousScheduler/blob/main/LICENSE</PackageLicenseUrl>
         <Configurations>Debug;Release;DebugWithConsole</Configurations>
         <Platforms>AnyCPU</Platforms>
     </PropertyGroup>
