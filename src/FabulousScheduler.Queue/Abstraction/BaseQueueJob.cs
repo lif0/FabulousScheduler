@@ -11,7 +11,6 @@ public abstract class BaseQueueJob : IQueueJob
 	private readonly object _lockState = new object();
 
 	// private
-	private bool _isAsyncAction;
 	private QueueJobStateEnum _state;
 	private bool _disposed;
 	private uint _totalRun;
@@ -25,6 +24,9 @@ public abstract class BaseQueueJob : IQueueJob
 	public DateTime? LastExecute { get; private set; }
 	public DateTime? LastSuccessExecute { get; private set; }
 	public uint TotalRun => _totalRun;
+	
+	// protected
+	protected bool IsAsyncAction;
 
 	protected BaseQueueJob(string name, string category, bool isAsyncAction, byte? attempts)
 	{
@@ -32,7 +34,7 @@ public abstract class BaseQueueJob : IQueueJob
 		Name = name;
 		Category = category;
 		Attempts = attempts;
-		_isAsyncAction = isAsyncAction;
+		IsAsyncAction = isAsyncAction;
 		_state = QueueJobStateEnum.Waiting;
 	}
 
@@ -71,7 +73,7 @@ public abstract class BaseQueueJob : IQueueJob
 		{
 			JobResult<JobOk, JobFail> res;
 			
-			if (_isAsyncAction)
+			if (IsAsyncAction)
 			{
 				res = await ActionJob();
 			}

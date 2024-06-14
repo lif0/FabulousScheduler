@@ -2,9 +2,9 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace FabulousScheduler.Cron;
 [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
-public class Config
+public class Configuration
 {
-    public Config(int maxParallelJobExecute, TimeSpan sleepAfterCheck)
+    public Configuration(int maxParallelJobExecute, TimeSpan sleepAfterCheck)
     {
         MaxParallelJobExecute = maxParallelJobExecute;
 
@@ -18,7 +18,7 @@ public class Config
         }
     }
 
-    public Config(int maxParallelJobExecute)
+    public Configuration(int maxParallelJobExecute)
     {
         MaxParallelJobExecute = maxParallelJobExecute;
         SleepAfterCheck = TimeSpan.FromMilliseconds(100);
@@ -41,7 +41,7 @@ public class Config
     /// </summary>
     /// <para><see cref="MaxParallelJobExecute"/> is ProcessorCount * 2</para>
     /// <para><see cref="SleepAfterCheck"/> is 200 ms</para>
-    public static Config Default =>
+    public static Configuration Default =>
         new(
             maxParallelJobExecute: Environment.ProcessorCount * 2,
             sleepAfterCheck: TimeSpan.FromMilliseconds(200)

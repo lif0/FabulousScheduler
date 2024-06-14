@@ -1,18 +1,16 @@
 using FabulousScheduler.Cron.Interfaces;
-using FabulousScheduler.Cron.Exception;
 using FabulousScheduler.Cron.Internal;
 using FabulousScheduler.Cron.Result;
 using FabulousScheduler.Core.Types;
+using FabulousScheduler.Exception;
 
 namespace FabulousScheduler.Cron;
 
-/// <summary>
-/// Cron job's manager
-/// </summary>
+/// <summary> Cron job's manager </summary>
 public static class CronJobManager
 {
     private static readonly object _syncScheduler = new();
-    private static Config? _config;
+    private static Configuration? _config;
     private static CronScheduler? _scheduler;
 
     /// <summary>
@@ -25,13 +23,13 @@ public static class CronJobManager
     /// </summary>
     /// <param name="config">Config instance</param>
     /// <exception cref="SetConfigAfterRunSchedulingException"> if you call this method after calling <see cref="RunScheduler"/> method</exception>
-    public static void SetConfig(Config config)
+    public static void SetConfig(Configuration config)
     {
         lock (_syncScheduler)
         {
             if (_scheduler != null)
             {
-                throw new SetConfigAfterRunSchedulingException($"Can't set config, because {nameof(_scheduler)} already initialized");
+                throw new SetConfigAfterRunSchedulingException(nameof(CronScheduler));
             }
             _config = config;
         }
@@ -57,7 +55,7 @@ public static class CronJobManager
     /// <summary>
     /// Register a job on jobManager
     /// </summary>
-    /// <param name="action">A algorithm that should be repeated</param>
+    /// <param name="action">A action that should be repeated</param>
     /// <param name="sleepDuration">How long time a job will be sleep after success execute</param>
     /// <returns>return JobID</returns>
     public static Guid Register(Func<Task> action, TimeSpan sleepDuration)
@@ -105,7 +103,7 @@ public static class CronJobManager
     /// <summary>
     /// Register a job on jobManager
     /// </summary>
-    /// <param name="action">A algorithm that should be repeated</param>
+    /// <param name="action">A action that should be repeated</param>
     /// <param name="sleepDuration">How long time a job will be sleep after success execute</param>
     /// <returns>return JobID</returns>
     public static Guid Register(Action action, TimeSpan sleepDuration)
@@ -160,8 +158,7 @@ public static class CronJobManager
         {
             if (_scheduler == null)
             {
-                throw new SchedulerNotRunnableException(
-                    $"The scheduler is not runnable. To fix this, you need to call the {nameof(CronJobManager)}.RunScheduler method before registering any jobs.");
+                throw new SchedulerNotRunnableException(nameof(CronJobManager));
             }
         }
 

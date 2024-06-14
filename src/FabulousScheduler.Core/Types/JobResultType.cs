@@ -3,9 +3,7 @@ using FabulousScheduler.Core.Interfaces.Result;
 
 namespace FabulousScheduler.Core.Types;
 
-/// <summary>
-/// Result a job
-/// </summary>
+/// <summary> Result a job </summary>
 /// <typeparam name="TOk">Valid JobJobResult</typeparam>
 /// <typeparam name="TFail">Exception or not valid JobJobResult</typeparam>
 public class JobResult<TOk, TFail> where TOk : IJobOk where TFail : IJobFail
@@ -34,10 +32,8 @@ public class JobResult<TOk, TFail> where TOk : IJobOk where TFail : IJobFail
     public static implicit operator JobResult<TOk, TFail>(TFail fail) => new(fail);
     public (TResult, TFailResult) Match<TResult, TFailResult>(Func<TOk?, TFail?, (TResult, TFailResult)> f) => f(_value, _fail);
 
-    /// <summary>
-    /// Get job's identity
-    /// </summary>
-    /// <returns>job's identity</returns>
+    /// <summary> Get job's identity </summary>
+    /// <returns> Job's identity </returns>
     public Guid JobID => !IsFail ? _value!.ID : _fail!.ID;
 
     public TFail? GetFail() => _fail;

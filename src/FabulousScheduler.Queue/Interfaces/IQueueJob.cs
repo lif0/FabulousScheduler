@@ -1,7 +1,7 @@
-using FabulousScheduler.Core.Interfaces;
 using FabulousScheduler.Core.Types;
 using FabulousScheduler.Queue.Enums;
 using FabulousScheduler.Queue.Result;
+using FabulousScheduler.Core.Interfaces;
 
 namespace FabulousScheduler.Queue.Interfaces;
 

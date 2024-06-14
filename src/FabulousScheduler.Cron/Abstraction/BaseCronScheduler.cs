@@ -24,14 +24,14 @@ public abstract class BaseCronScheduler : ICronJobScheduler
 	private readonly Dictionary<Guid, ICronJob> _registeredJob;
 
 	// protected
-	protected readonly Config Config;
+	protected readonly Configuration Config;
 
 	// public
 	public event ICronJobScheduler.JobResultEventHandler? JobResultEvent;
 
-	protected BaseCronScheduler(Config? config)
+	protected BaseCronScheduler(Configuration? config)
 	{
-		Config = config ?? Config.Default;
+		Config = config ?? Configuration.Default;
 		
 		_registeredJob = new Dictionary<Guid, ICronJob>();
 		_jobExecutorLimiter = new SemaphoreSlim(Config.MaxParallelJobExecute, Config.MaxParallelJobExecute);

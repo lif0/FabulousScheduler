@@ -32,7 +32,7 @@ public class JobManagerTests
 
 		// init
 		var queue = new InMemoryQueue();
-		var config = new Config( maxParallelJobExecute: 1);
+		var config = new Configuration( maxParallelJobExecute: 1);
 		var scheduler = new TestQueueScheduler(config, queue);
 		void ManagerOnJobResultEvent(ref IQueueJob sender, ref JobResult<JobOk, JobFail> result)
 		{
@@ -76,7 +76,7 @@ public class JobManagerTests
 
 		// init
 		var queue = new InMemoryQueue();
-		var config = new Config( maxParallelJobExecute: 1);
+		var config = new Configuration( maxParallelJobExecute: 1);
 		var scheduler = new TestQueueScheduler(config, queue);
 		void ManagerOnJobResultEvent(ref IQueueJob sender, ref JobResult<JobOk, JobFail> result)
 		{
@@ -120,7 +120,7 @@ public class JobManagerTests
 
 		// init
 		var queue = new InMemoryQueue();
-		var config = new Config( maxParallelJobExecute: 1);
+		var config = new Configuration( maxParallelJobExecute: 1);
 		var scheduler = new TestQueueScheduler(config, queue);
 		void ManagerOnJobResultEvent(ref IQueueJob sender, ref JobResult<JobOk, JobFail> result)
 		{
@@ -166,7 +166,7 @@ public class JobManagerTests
 
 		// init
 		var queue = new InMemoryQueue();
-		var config = new Config(maxParallelJobExecute: 1);
+		var config = new Configuration(maxParallelJobExecute: 1);
 		var scheduler = new TestQueueScheduler(config, queue);
 		void ManagerOnJobResultEvent(ref IQueueJob sender, ref JobResult<JobOk, JobFail> result)
 		{
@@ -228,7 +228,7 @@ public class JobManagerTests
 
 		// init
 		var queue = new InMemoryQueue();
-		var config = new Config( maxParallelJobExecute: 1);
+		var config = new Configuration( maxParallelJobExecute: 1);
 		var scheduler = new TestQueueSchedulerWithAttempts(config, queue);
 		void ManagerOnJobResultEvent(ref IQueueJob sender, ref JobResult<JobOk, JobFail> result)
 		{
@@ -286,7 +286,7 @@ public class JobManagerTests
 	
 		// init
 		var queue = new InMemoryQueue(countJobs);
-		var config = new Config(maxParallelJobExecute: parallelJobs);
+		var config = new Configuration(maxParallelJobExecute: parallelJobs);
 		var scheduler = new TestQueueScheduler(config, queue);
 		void ManagerOnJobResultEvent(ref IQueueJob sender, ref JobResult<JobOk, JobFail> result)
 		{
@@ -340,7 +340,7 @@ public class JobManagerTests
 	
 		// init
 		var queue = new InMemoryQueue(countJobs);
-		var config = new Config(maxParallelJobExecute: parallelJobs);
+		var config = new Configuration(maxParallelJobExecute: parallelJobs);
 		var scheduler = new TestQueueScheduler(config, queue);
 		void ManagerOnJobResultEvent(ref IQueueJob sender, ref JobResult<JobOk, JobFail> result)
 		{

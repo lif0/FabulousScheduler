@@ -3,12 +3,14 @@ using FabulousScheduler.Cron.Result;
 using FabulousScheduler.Core.Types;
 using FabulousScheduler.Cron;
 
-
-var config = new Config(
+var config = new Configuration(
     maxParallelJobExecute: 5,
     sleepAfterCheck: TimeSpan.FromMilliseconds(100)
 );
 CronJobManager.SetConfig(config);
+
+// Start a job scheduler
+CronJobManager.RunScheduler();
 
 // Register callback for job's result
 CronJobManager.JobResultEvent += (ref ICronJob job, ref JobResult<JobOk, JobFail> res) =>
@@ -33,9 +35,6 @@ CronJobManager.Register(
     sleepDuration: TimeSpan.FromSeconds(1),
     name: "ExampleJob"
 );
-
-// Start a job scheduler
-CronJobManager.RunScheduler();
 
 /*
  * The job will fall asleep for 1 second after success completion, then it will wake up and will be push the job pool
