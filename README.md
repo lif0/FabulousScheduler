@@ -47,18 +47,19 @@ I have developed this library for cases where you need to launch a large count o
 
 ## 🚀 Features <a id="features" />
 - [x] Implement default cron scheduler
-- [ ] Implement default queue scheduler
+- [x] Implement default queue scheduler
 - [ ] Docs for CustomCronJobManager
 - [ ] Docs for CustomQueueJobManager
 - [ ] Benchmark for JobResult type
 - [x] Return job result via pub/sub callback event
-- [ ] Cover queue scheduler unit tests
+- [x] Cover queue scheduler unit tests
 - [ ] Cover InMemoryQueue unit tests
 - [ ] Implement PSQLQueue
 - [ ] Cover PSQLQueue unit tests 
 - [x] Cover cron scheduler unit tests
 - [x] Cover queue scheduler unit tests
 - [ ] A structure for store jobs. take: O(1) push: (?)
+- [ ] Refactot Task to ValueTask
 
 ## 📚 Usage <a id="usage" />
 ### 📋 Requirements <a id="requirements" />
