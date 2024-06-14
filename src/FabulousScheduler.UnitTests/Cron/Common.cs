@@ -119,7 +119,7 @@ internal class CronJobInternalExceptionResult : BaseCronJob
 
 internal class TestCronScheduler : BaseCronScheduler
 {
-	public TestCronScheduler(Config? config) : base(config) { }
+	public TestCronScheduler(Configuration? config) : base(config) { }
 
 	public new bool Register(ICronJob job)
 	{

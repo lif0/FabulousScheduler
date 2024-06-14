@@ -17,18 +17,18 @@ public class BaseQueueScheduler : IQueueJobScheduler
 
     // protected
     protected readonly IQueue Queue;
-    protected readonly Config Config;
+    protected readonly Configuration Configuration;
 
     // public
     public event IQueueJobScheduler.JobResultEventHandler? JobResultEvent;
 
-    protected BaseQueueScheduler(Config? config, IQueue queue)
+    protected BaseQueueScheduler(Configuration? config, IQueue queue)
     {
-        Config = config ?? Config.Default;
+        Configuration = config ?? Configuration.Default;
         Queue = queue;
 
-        _jobExecutorLimiter = new SemaphoreSlim(Config.MaxParallelJobExecute, Config.MaxParallelJobExecute);
-        _inProgress = new ConcurrentDictionary<Guid, (IQueueJob, Task)>(Environment.ProcessorCount, this.Config.MaxParallelJobExecute);
+        _jobExecutorLimiter = new SemaphoreSlim(Configuration.MaxParallelJobExecute, Configuration.MaxParallelJobExecute);
+        _inProgress = new ConcurrentDictionary<Guid, (IQueueJob, Task)>(Environment.ProcessorCount, this.Configuration.MaxParallelJobExecute);
         _cancellationTokenSource = new CancellationTokenSource();
     }
 

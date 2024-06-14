@@ -5,6 +5,7 @@ using FabulousScheduler.Core.Interfaces;
 
 namespace FabulousScheduler.Cron.Interfaces;
 
+/// <summary> Cron job </summary>
 public interface ICronJob: IJob
 {
 	/// <summary> Job's category </summary>

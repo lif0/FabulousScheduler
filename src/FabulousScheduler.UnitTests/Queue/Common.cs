@@ -106,14 +106,14 @@ public class QueueJobAttemptsFailNextOk : BaseQueueJob
 
 public class TestQueueScheduler : BaseQueueScheduler
 {
-	public TestQueueScheduler(Config? config, IQueue queue) : base(config, queue)
+	public TestQueueScheduler(Configuration? config, IQueue queue) : base(config, queue)
 	{
 	}
 }
 
 public class TestQueueSchedulerWithAttempts : BaseQueueScheduler
 {
-	public TestQueueSchedulerWithAttempts(Config? config, IQueue queue) : base(config, queue)
+	public TestQueueSchedulerWithAttempts(Configuration? config, IQueue queue) : base(config, queue)
 	{
 		base.JobResultEvent += OnJobResultEvent;
 	}

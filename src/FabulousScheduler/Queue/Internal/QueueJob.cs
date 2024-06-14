@@ -1,11 +1,11 @@
 using FabulousScheduler.Core.Types;
-using FabulousScheduler.Cron.Abstraction;
-using FabulousScheduler.Cron.Enums;
-using FabulousScheduler.Cron.Result;
+using FabulousScheduler.Queue.Result;
+using FabulousScheduler.Queue.Abstraction;
+using FabulousScheduler.Queue.Enums;
 
-namespace FabulousScheduler.Cron.Internal;
+namespace FabulousScheduler.Queue.Internal;
 
-internal sealed class CronJob : BaseCronJob
+internal sealed class QueueJob : BaseQueueJob
 {
     private const string DefaultJobName = "anonimouse";
     private const string DefaultJobCategory = "internal";
@@ -13,12 +13,12 @@ internal sealed class CronJob : BaseCronJob
     private readonly Func<Task>? _actionAsync;
     private readonly Action? _actionSync;
 
-    public CronJob(Func<Task> action, string? name, string? category, TimeSpan sleepDuration) : base(name ?? DefaultJobName, category ?? DefaultJobCategory, sleepDuration, true)
+    public QueueJob(Func<Task> action, string? name, string? category, byte? attempts) : base(name ?? DefaultJobName, category ?? DefaultJobCategory, true, attempts)
     {
         _actionAsync = action;
     }
     
-    public CronJob(Action action, string? name, string? category, TimeSpan sleepDuration) : base(name ?? DefaultJobName, category ?? DefaultJobCategory, sleepDuration, false)
+    public QueueJob(Action action, string? name, string? category, byte? attempts) : base(name ?? DefaultJobName, category ?? DefaultJobCategory, false, attempts)
     {
         _actionSync = action;
     }
@@ -38,9 +38,9 @@ internal sealed class CronJob : BaseCronJob
         }
         catch (System.Exception e)
         {
-            return new JobFail(CronJobFailEnum.InternalException, base.ID, e.Message, e);
+            return new JobFail(QueueJobFailEnum.InternalException, base.ID, e.Message, e);
         }
 
-        return new JobOk(base.ID);
+        return new JobOk(base.ID, base.Name);
     }
 }

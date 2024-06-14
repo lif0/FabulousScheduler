@@ -3,14 +3,12 @@ using FabulousScheduler.Cron.Abstraction;
 
 namespace FabulousScheduler.Cron.Internal;
 
-/// <summary>
-/// Cron job manager
-/// </summary>
+/// <summary> Cron job manager </summary>
 [SuppressMessage("ReSharper", "RedundantBaseQualifier")]
 [SuppressMessage("ReSharper", "NotAccessedField.Local")]
 internal sealed class CronScheduler : BaseCronScheduler
 {
-    internal CronScheduler(Config? config) : base(config)
+    internal CronScheduler(Configuration? config) : base(config)
     {
     }
 

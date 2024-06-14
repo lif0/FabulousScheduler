@@ -21,7 +21,7 @@ public class JobManagerTests
 		Stopwatch sw = new Stopwatch();
 
 		// init
-		var config = new Config( maxParallelJobExecute: 1, sleepAfterCheck: TimeSpan.FromHours(1));
+		var config = new Configuration( maxParallelJobExecute: 1, sleepAfterCheck: TimeSpan.FromHours(1));
 		var scheduler = new TestCronScheduler(config);
 		void ManagerOnJobResultEvent(ref ICronJob sender, ref JobResult<JobOk, JobFail> e)
 		{
@@ -61,7 +61,7 @@ public class JobManagerTests
 		Stopwatch sw = new Stopwatch();
 
 		// init
-		var config = new Config(maxParallelJobExecute: 1, sleepAfterCheck: TimeSpan.FromHours(1));
+		var config = new Configuration(maxParallelJobExecute: 1, sleepAfterCheck: TimeSpan.FromHours(1));
 		var scheduler = new TestCronScheduler(config);
 
 		void ManagerOnJobResultEvent(ref ICronJob sender, ref JobResult<JobOk, JobFail> e)
@@ -104,7 +104,7 @@ public class JobManagerTests
 		Stopwatch sw = new Stopwatch();
 	
 		// init
-		var config = new Config( maxParallelJobExecute: parallelJobs, sleepAfterCheck: TimeSpan.FromMilliseconds(50));
+		var config = new Configuration( maxParallelJobExecute: parallelJobs, sleepAfterCheck: TimeSpan.FromMilliseconds(50));
 		var manager = new TestCronScheduler(config);
 		manager.JobResultEvent += (ref ICronJob _, ref JobResult<JobOk, JobFail> e) =>
 		{
@@ -149,7 +149,7 @@ public class JobManagerTests
 		Stopwatch sw = new Stopwatch();
 	
 		// init
-		var config = new Config( maxParallelJobExecute: parallelJobs, sleepAfterCheck: TimeSpan.FromMilliseconds(50));
+		var config = new Configuration( maxParallelJobExecute: parallelJobs, sleepAfterCheck: TimeSpan.FromMilliseconds(50));
 		var manager = new TestCronScheduler(config);
 		manager.JobResultEvent += (ref ICronJob _, ref JobResult<JobOk, JobFail> e) =>
 		{
@@ -194,7 +194,7 @@ public class JobManagerTests
 		Stopwatch sw = new Stopwatch();
 	
 		// init
-		var config = new Config( maxParallelJobExecute: parallelJobs, sleepAfterCheck: TimeSpan.FromMilliseconds(50));
+		var config = new Configuration( maxParallelJobExecute: parallelJobs, sleepAfterCheck: TimeSpan.FromMilliseconds(50));
 		var manager = new TestCronScheduler(config);
 		manager.JobResultEvent += (ref ICronJob _, ref JobResult<JobOk, JobFail> e) =>
 		{
@@ -238,7 +238,7 @@ public class JobManagerTests
 		CancellationTokenSource cts = new();
 	
 		// init
-		var config = new Config( maxParallelJobExecute: parallelJobs, sleepAfterCheck: TimeSpan.FromMilliseconds(10));
+		var config = new Configuration( maxParallelJobExecute: parallelJobs, sleepAfterCheck: TimeSpan.FromMilliseconds(10));
 		var manager = new TestCronScheduler(config);
 		manager.JobResultEvent += (ref ICronJob _, ref JobResult<JobOk, JobFail> e) =>
 		{
@@ -274,7 +274,7 @@ public class JobManagerTests
 		CancellationTokenSource cts = new();
 	
 		// init
-		var config = new Config( maxParallelJobExecute: parallelJobs, sleepAfterCheck: TimeSpan.FromMilliseconds(20) );
+		var config = new Configuration( maxParallelJobExecute: parallelJobs, sleepAfterCheck: TimeSpan.FromMilliseconds(20) );
 		var scheduler = new TestCronScheduler(config);
 		scheduler.JobResultEvent += (ref ICronJob _, ref JobResult<JobOk, JobFail> e) =>
 		{

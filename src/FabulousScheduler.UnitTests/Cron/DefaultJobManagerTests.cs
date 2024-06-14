@@ -13,7 +13,7 @@ public class DefaultJobManagerTests
 
 	static DefaultJobManagerTests()
     {
-	    var conf = new Config(1, TimeSpan.FromMilliseconds(50));
+	    var conf = new Configuration(1, TimeSpan.FromMilliseconds(50));
 	    CronJobManager.SetConfig(conf);
 	    CronJobManager.RunScheduler();
     }

@@ -1,10 +1,11 @@
 using FabulousScheduler.Core.Types;
 using FabulousScheduler.Cron.Enums;
-using FabulousScheduler.Cron.Interfaces;
 using FabulousScheduler.Cron.Result;
+using FabulousScheduler.Cron.Interfaces;
 
 namespace FabulousScheduler.Cron.Abstraction;
 
+/// <summary> Base cron job </summary>
 public abstract class BaseCronJob : ICronJob
 {
 	#region Private

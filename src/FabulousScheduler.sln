@@ -18,6 +18,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Benchmark", "Benchmark", "{
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Benchmark\Common\Common.csproj", "{A6CD4AD4-350B-4A7B-8F79-16A876CBB12D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FabulousScheduler.QueueSample", "Samples\FabulousScheduler.QueueSample\FabulousScheduler.QueueSample.csproj", "{748AF0F9-B64C-412F-BF82-10BD357A6C11}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -67,9 +69,16 @@ Global
 		{A6CD4AD4-350B-4A7B-8F79-16A876CBB12D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A6CD4AD4-350B-4A7B-8F79-16A876CBB12D}.DebugWithConsole|Any CPU.ActiveCfg = Debug|Any CPU
 		{A6CD4AD4-350B-4A7B-8F79-16A876CBB12D}.DebugWithConsole|Any CPU.Build.0 = Debug|Any CPU
+		{748AF0F9-B64C-412F-BF82-10BD357A6C11}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{748AF0F9-B64C-412F-BF82-10BD357A6C11}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{748AF0F9-B64C-412F-BF82-10BD357A6C11}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{748AF0F9-B64C-412F-BF82-10BD357A6C11}.Release|Any CPU.Build.0 = Release|Any CPU
+		{748AF0F9-B64C-412F-BF82-10BD357A6C11}.DebugWithConsole|Any CPU.ActiveCfg = Debug|Any CPU
+		{748AF0F9-B64C-412F-BF82-10BD357A6C11}.DebugWithConsole|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{CA2A6645-14F0-46FA-98C0-1F76AFBAD639} = {253A32F6-B196-4885-A8AB-8E50A0060AF3}
 		{A6CD4AD4-350B-4A7B-8F79-16A876CBB12D} = {03353F22-1894-4639-8756-922204E63D84}
+		{748AF0F9-B64C-412F-BF82-10BD357A6C11} = {253A32F6-B196-4885-A8AB-8E50A0060AF3}
 	EndGlobalSection
 EndGlobal
