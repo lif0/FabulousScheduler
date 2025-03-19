@@ -1,6 +1,6 @@
 namespace FabulousScheduler.Core.Interfaces.Result;
 
-/// <summary> The result of successful completion of a job </summary>
+/// <summary> The result of a successfully completed  job </summary>
 public interface IJobOk
 {
     /// <summary> <inheritdoc cref="IJob.ID"/> </summary>

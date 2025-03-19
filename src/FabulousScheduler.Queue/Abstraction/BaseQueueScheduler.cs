@@ -1,6 +1,6 @@
-using System.Collections.Concurrent;
-using System.Runtime.CompilerServices;
 using FabulousScheduler.Queue.Interfaces;
+using System.Runtime.CompilerServices;
+using System.Collections.Concurrent;
 
 namespace FabulousScheduler.Queue.Abstraction;
 
@@ -52,21 +52,8 @@ public class BaseQueueScheduler : IQueueJobScheduler
     {
         while (!_cancellationTokenSource.Token.IsCancellationRequested)
         {
-#if DEBUGWITHCONSOLE
-			Console.WriteLine($"[ExecutableLoop {_debugId:N}] Start wait JobParallelLimiter");
-#endif
             await _jobExecutorLimiter.WaitAsync(CancellationToken.None);
-#if DEBUGWITHCONSOLE
-			Console.WriteLine($"[ExecutableLoop {_debugId:N}] Finish wait JobParallelLimiter");
-#endif
-
-#if DEBUGWITHCONSOLE
-				Console.WriteLine($"[_queue.NextAsync {_debugId:N}] get next job");
-#endif
             var newJob = await Queue.NextAsync();
-#if DEBUGWITHCONSOLE
-				Console.WriteLine($"[_queue.NextAsync {_debugId:N}] finish wait next job");
-#endif                        
             CreateTask(ref newJob);
         }
     }
@@ -82,9 +69,6 @@ public class BaseQueueScheduler : IQueueJobScheduler
                 ArgumentNullException.ThrowIfNull(@job, nameof(@job));
             }
 
-#if DEBUGWITHCONSOLE
-			Console.WriteLine($"[CreateTask {_debugId:N}] JobResultEventNull:{JobResultEvent is null}");
-#endif
             var res = await @job.ExecuteAsync();
             if (_inProgress.TryRemove(@job.ID, out var tup))
             {

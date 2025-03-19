@@ -185,21 +185,21 @@ public class JobManagerTests
 	[Fact]
 	public async void Time_50k()
 	{
-		int countJobs = 50000, oneTimeJobMs = 3, parallelJobs = Environment.ProcessorCount*20;
+		int countJobs = 50000, oneTimeJobMs = 3;
 	
 		// helper
-		var hash = new ConcurrentDictionary<Guid, byte>();
+		var set = new ConcurrentDictionary<Guid, byte>();
 		TaskCompletionSource tcs = new();
 		Stopwatch sw = new Stopwatch();
 	
 		// init
-		var config = new Configuration( maxParallelJobExecute: parallelJobs, sleepAfterCheck: TimeSpan.FromMilliseconds(50));
-		var manager = new TestRecurringScheduler(config);
-		manager.JobResultEvent += (ref IRecurringJob _, ref JobResult<JobOk, JobFail> e) =>
+		var config = Configuration.Default;
+		var manager = new TestCronScheduler(config);
+		manager.JobResultEvent += (ref ICronJob _, ref JobResult<JobOk, JobFail> e) =>
 		{
-			hash.AddOrUpdate(e.JobID, _ => 1, (_, b) => ++b);
+			set.AddOrUpdate(e.JobID, _ => 1, (_, b) => ++b);
 	
-			if (hash.Count == countJobs)
+			if (set.Count == countJobs)
 			{
 				sw.Stop();
 				tcs.SetResult();
@@ -220,11 +220,56 @@ public class JobManagerTests
 
 		long uniqCountCall = jobs.Count(x => x.TotalRun == 1);
 		ulong countCall = jobs.SumUlong(x => x.TotalRun);
-		double expectedWorkTimeSec = Helper.GuessDurationInMilliseconds(countJobs, parallelJobs, oneTimeJobMs);
+		double expectedWorkTimeSec = Helper.GuessDurationInMilliseconds(countJobs, config.MaxParallelJobExecute, oneTimeJobMs);
 		
 		Assert.Equal(countCall, (ulong)uniqCountCall);
 		Assert.Equal((ulong)countJobs, countCall);
-		//Assert.Equal(expectedWorkTimeSec,sw.Elapsed.TotalMilliseconds,1000f/*1 sec*/);
+		//Assert.Equal(expectedWorkTimeSec,sw.Elapsed.TotalMilliseconds,0/*1 sec*/);
+	}
+	
+	[Fact]
+	public async void Time_200k()
+	{
+		int countJobs = 200_000, oneTimeJobMs = 3;
+	
+		// helper
+		var set = new ConcurrentDictionary<Guid, byte>();
+		TaskCompletionSource tcs = new();
+		Stopwatch sw = new Stopwatch();
+	
+		// init
+		var config = Configuration.Default;
+		var manager = new TestRecurringScheduler(config);
+		manager.JobResultEvent += (ref IRecurringJob _, ref JobResult<JobOk, JobFail> e) =>
+		{
+			set.AddOrUpdate(e.JobID, _ => 1, (_, b) => ++b);
+	
+			if (set.Count == countJobs)
+			{
+				sw.Stop();
+				tcs.SetResult();
+			}
+		};
+		
+		// test
+		var jobs = new List<Job_Random>(countJobs);
+		for (int i = 1; i <= countJobs; i++)
+		{
+			jobs.Add(new Job_Random(i.ToString(), TimeSpan.MaxValue, TimeSpan.FromMilliseconds(oneTimeJobMs)));
+		}
+		manager.Register(jobs);
+		manager.RunScheduler();
+		sw.Start();
+	
+		await tcs.Task;
+
+		long uniqCountCall = jobs.Count(x => x.TotalRun == 1);
+		ulong countCall = jobs.SumUlong(x => x.TotalRun);
+		double expectedWorkTimeSec = Helper.GuessDurationInMilliseconds(countJobs, config.MaxParallelJobExecute, oneTimeJobMs);
+		
+		Assert.Equal(countCall, (ulong)uniqCountCall);
+		Assert.Equal((ulong)countJobs, countCall);
+		Assert.Equal(expectedWorkTimeSec,sw.Elapsed.TotalMilliseconds,0/*1 sec*/);
 	}
 	
 	[Fact]

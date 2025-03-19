@@ -3,9 +3,7 @@ using FabulousScheduler.Recurring.Enums;
 
 namespace FabulousScheduler.Recurring.Result;
 
-/// <summary>
-/// <inheritdoc cref="IJobFail"/>
-/// </summary>
+/// <summary> <inheritdoc cref="IJobFail"/> </summary>
 public sealed class JobFail : IJobFail
 {
 	public JobFail(JobFailEnum reason, Guid jobID, string message, Exception? exception = null)
@@ -16,9 +14,7 @@ public sealed class JobFail : IJobFail
 		Exception = exception;
 	}
 	
-	/// <summary>
-	/// <inheritdoc/>
-	/// </summary>
+	/// <summary> <inheritdoc/> </summary>
 	public Guid ID { get; }
 
 	/// <summary>
