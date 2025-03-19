@@ -9,7 +9,7 @@
 
         <RootNamespace>Job.Core.Tests</RootNamespace>
 
-        <Configurations>Debug;Release;DebugWithConsole</Configurations>
+        <Configurations>Debug;Release</Configurations>
 
         <Platforms>AnyCPU</Platforms>
     </PropertyGroup>
@@ -43,7 +43,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\FabulousScheduler.Cron\FabulousScheduler.Cron.csproj" />
+      <ProjectReference Include="..\FabulousScheduler.Recurring\FabulousScheduler.Recurring.csproj" />
       <ProjectReference Include="..\FabulousScheduler.Queue\FabulousScheduler.Queue.csproj" />
       <ProjectReference Include="..\FabulousScheduler\FabulousScheduler.csproj" />
     </ItemGroup>

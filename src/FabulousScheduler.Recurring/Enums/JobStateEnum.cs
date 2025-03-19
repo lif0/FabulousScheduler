@@ -1,7 +1,7 @@
-namespace FabulousScheduler.Cron.Enums;
+namespace FabulousScheduler.Recurring.Enums;
 
 [Flags]
-public enum CronJobStateEnum
+public enum JobStateEnum
 {
 	/// <summary>
 	/// The job is ready to run and waiting for the Executor.

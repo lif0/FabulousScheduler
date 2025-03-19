@@ -2,7 +2,7 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FabulousScheduler.Core", "FabulousScheduler.Core\FabulousScheduler.Core.csproj", "{0E000792-BB5A-4AEA-9246-2CA5970F6C5B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FabulousScheduler.Cron", "FabulousScheduler.Cron\FabulousScheduler.Cron.csproj", "{43CD3484-95D2-4755-80C3-1E73C27B3271}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FabulousScheduler.Recurring", "FabulousScheduler.Recurring\FabulousScheduler.Recurring.csproj", "{43CD3484-95D2-4755-80C3-1E73C27B3271}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FabulousScheduler.Queue", "FabulousScheduler.Queue\FabulousScheduler.Queue.csproj", "{6441434F-81B4-4CE6-8AAB-74EB3A5C6FA0}"
 EndProject
@@ -12,7 +12,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FabulousScheduler", "Fabulo
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{253A32F6-B196-4885-A8AB-8E50A0060AF3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FabulousScheduler.CronSample", "Samples\FabulousScheduler.CronSample\FabulousScheduler.CronSample.csproj", "{CA2A6645-14F0-46FA-98C0-1F76AFBAD639}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FabulousScheduler.RecurringSample", "Samples\FabulousScheduler.RecurringSample\FabulousScheduler.RecurringSample.csproj", "{CA2A6645-14F0-46FA-98C0-1F76AFBAD639}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Benchmark", "Benchmark", "{03353F22-1894-4639-8756-922204E63D84}"
 EndProject

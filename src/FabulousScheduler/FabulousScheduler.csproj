@@ -6,14 +6,14 @@
         <TargetFrameworks>net6.0;net7.0;net8.0</TargetFrameworks>
         <PackageId>FabulousScheduler</PackageId>
         <Authors>lif0</Authors>
-        <Description>High performance cron/queue fabulous job scheduler.</Description>
+        <Description>High-performance scheduler for recurring and queue-based jobs.</Description>
         <RepositoryUrl>https://github.com/lif0/FabulousScheduler/</RepositoryUrl>
         <PackageProjectUrl>https://github.com/lif0/FabulousScheduler/</PackageProjectUrl>
-        <PackageTags>scheduler cron-scheduler queue-scheduler advanced-cron-scheduler advanced-queue-scheduler cron-tweaks queue-tweaks fluent</PackageTags>
+        <PackageTags>scheduler performance-scheduler grabber fluent recurring-job custom-cron advanced-cron-scheduler advanced-queue-scheduler custom-queue grab-html recurring-task recurring-scheduler queue-based-job queue-based-task advanced-recurring-scheduler advanced-queue-based-scheduler custom-recurring</PackageTags>
         <IsPackable>true</IsPackable>
         <PackageIcon>icon.png</PackageIcon>
         <Version>1.0.0</Version>
-        <Configurations>Debug;Release;DebugWithConsole</Configurations>
+        <Configurations>Debug;Release</Configurations>
         <Platforms>AnyCPU</Platforms>
     </PropertyGroup>
 
@@ -32,7 +32,7 @@
     </PropertyGroup>
     
     <ItemGroup>
-      <ProjectReference Include="..\FabulousScheduler.Cron\FabulousScheduler.Cron.csproj" />
+      <ProjectReference Include="..\FabulousScheduler.Recurring\FabulousScheduler.Recurring.csproj" />
       <ProjectReference Include="..\FabulousScheduler.Queue\FabulousScheduler.Queue.csproj" />
     </ItemGroup>
     

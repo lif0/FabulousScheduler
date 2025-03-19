@@ -1,12 +1,12 @@
-namespace FabulousScheduler.Cron.Enums;
+namespace FabulousScheduler.Recurring.Enums;
 
 [Flags]
-public enum CronJobFailEnum
+public enum JobFailEnum
 {
 	/// <summary>
 	/// Job have incorrect start.
 	/// <example>
-	///		When a job begin execute with state not equal <see cref="CronJobStateEnum.Ready"/>
+	///		When a job begin execute with state not equal <see cref="JobStateEnum.Ready"/>
 	/// </example>
 	/// </summary>
 	IncorrectState,

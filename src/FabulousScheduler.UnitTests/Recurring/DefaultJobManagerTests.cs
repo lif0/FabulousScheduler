@@ -1,11 +1,11 @@
-using Xunit.Abstractions;
-using FabulousScheduler.Cron;
 using FabulousScheduler.Core.Types;
-using FabulousScheduler.Cron.Interfaces;
-using FabulousScheduler.Cron.Result;
+using FabulousScheduler.Recurring;
+using FabulousScheduler.Recurring.Interfaces;
+using FabulousScheduler.Recurring.Result;
+using Xunit.Abstractions;
 
 // ReSharper disable AsyncVoidLambda
-namespace Job.Core.Tests.Cron;
+namespace Job.Core.Tests.Recurring;
 
 public class DefaultJobManagerTests
 {
@@ -14,8 +14,8 @@ public class DefaultJobManagerTests
 	static DefaultJobManagerTests()
     {
 	    var conf = new Configuration(1, TimeSpan.FromMilliseconds(50));
-	    CronJobManager.SetConfig(conf);
-	    CronJobManager.RunScheduler();
+	    RecurringJobManager.SetConfig(conf);
+	    RecurringJobManager.RunScheduler();
     }
 
 	public DefaultJobManagerTests(ITestOutputHelper testOutputHelper)
@@ -34,7 +34,7 @@ public class DefaultJobManagerTests
         TaskCompletionSource<JobResult<JobOk, JobFail>> tcs = new();
         int countCall = 0;
         
-        void OnCallbackEvent(ref ICronJob sender, ref JobResult<JobOk, JobFail> e)
+        void OnCallbackEvent(ref IRecurringJob sender, ref JobResult<JobOk, JobFail> e)
         {
 	        // ReSharper disable once AccessToModifiedClosure
 	        if (e.JobID != jobID) return;
@@ -44,10 +44,10 @@ public class DefaultJobManagerTests
 	        tcs.SetResult(e);
 	        tcs.TrySetCanceled();
         }
-        CronJobManager.JobResultEvent += OnCallbackEvent;
+        RecurringJobManager.JobResultEvent += OnCallbackEvent;
 
         // test
-        jobID = CronJobManager.Register(
+        jobID = RecurringJobManager.Register(
 	        action: async () =>
 	        {
 		        await Task.Delay(oneTimeJobMs);
@@ -55,7 +55,7 @@ public class DefaultJobManagerTests
 	        }, TimeSpan.MaxValue
         );
         var result = await tcs.Task;
-        CronJobManager.JobResultEvent -= OnCallbackEvent;
+        RecurringJobManager.JobResultEvent -= OnCallbackEvent;
 
         Assert.NotNull(result.GetFail());
         Assert.True(result.IsFail);
@@ -74,7 +74,7 @@ public class DefaultJobManagerTests
 	    TaskCompletionSource<JobResult<JobOk, JobFail>> tcs = new();
 	    int countCall = 0;
 	    
-	    void OnCallbackEvent(ref ICronJob sender, ref JobResult<JobOk, JobFail> e)
+	    void OnCallbackEvent(ref IRecurringJob sender, ref JobResult<JobOk, JobFail> e)
 	    {
 		    // ReSharper disable once AccessToModifiedClosure
 		    if (e.JobID != jobID) return;
@@ -84,17 +84,17 @@ public class DefaultJobManagerTests
 		    tcs.SetResult(e);
 		    tcs.TrySetCanceled();
 	    }
-	    CronJobManager.JobResultEvent += OnCallbackEvent;
+	    RecurringJobManager.JobResultEvent += OnCallbackEvent;
 	    
 	    // test
-	    jobID = CronJobManager.Register(
+	    jobID = RecurringJobManager.Register(
 		    action: async () =>
 		    {
 			    await Task.Delay(oneTimeJobMs);
 		    }, TimeSpan.MaxValue
 	    );
 	    var result = await tcs.Task;
-	    CronJobManager.JobResultEvent -= OnCallbackEvent;
+	    RecurringJobManager.JobResultEvent -= OnCallbackEvent;
 
 	    Assert.Null(result.GetFail());
 	    Assert.True(result.IsSuccess);

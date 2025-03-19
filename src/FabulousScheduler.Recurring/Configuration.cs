@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace FabulousScheduler.Cron;
+namespace FabulousScheduler.Recurring;
 [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
 public class Configuration
 {
