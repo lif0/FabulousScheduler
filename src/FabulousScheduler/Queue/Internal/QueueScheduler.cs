@@ -3,7 +3,7 @@ using FabulousScheduler.Queue.Interfaces;
 
 namespace FabulousScheduler.Queue.Internal;
 
-/// <summary> Cron job manager </summary>
+/// <summary> Queue-based job manager </summary>
 public class QueueScheduler : BaseQueueScheduler
 {
     internal QueueScheduler(Configuration? config, IQueue queue) : base(config, queue)

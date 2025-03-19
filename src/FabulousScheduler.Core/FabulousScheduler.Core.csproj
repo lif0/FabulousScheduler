@@ -12,7 +12,7 @@
         <IsPackable>true</IsPackable>
         <Version>1.0.0</Version>
         <PackageIcon>icon.png</PackageIcon>
-        <Configurations>Debug;Release;DebugWithConsole</Configurations>
+        <Configurations>Debug;Release</Configurations>
         <Platforms>AnyCPU</Platforms>
         <UserSecretsId>808ce4e4-82b4-4f87-b7f7-5cef24b592dd</UserSecretsId>
     </PropertyGroup>

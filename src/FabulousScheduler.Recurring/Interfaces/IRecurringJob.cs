@@ -1,18 +1,18 @@
-using FabulousScheduler.Core.Types;
-using FabulousScheduler.Cron.Enums;
-using FabulousScheduler.Cron.Result;
+using FabulousScheduler.Recurring.Result;
+using FabulousScheduler.Recurring.Enums;
 using FabulousScheduler.Core.Interfaces;
+using FabulousScheduler.Core.Types;
 
-namespace FabulousScheduler.Cron.Interfaces;
+namespace FabulousScheduler.Recurring.Interfaces;
 
-/// <summary> Cron job </summary>
-public interface ICronJob: IJob
+/// <summary> The recurring job </summary>
+public interface IRecurringJob: IJob
 {
 	/// <summary> Job's category </summary>
 	public string Category { get; }
 	
-	/// <summary> Job's <see cref="CronJobStateEnum">State</see> </summary>
-	public CronJobStateEnum State { get; }
+	/// <summary> Job's <see cref="JobStateEnum">State</see> </summary>
+	public State State { get; }
 	
 	/// <summary>
 	/// Sleep duration after success finish job
@@ -36,7 +36,7 @@ public interface ICronJob: IJob
 
 	/// <summary> Reset state </summary>
 	/// <remarks>
-	/// Set <see cref="CronJobStateEnum.Waiting"/> for <see cref="State"/> 
+	/// Set <see cref="JobStateEnumJobStateEnuming"/> for <see cref="State"/> 
 	/// </remarks>
 	internal void ResetState();
 }

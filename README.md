@@ -1,6 +1,6 @@
 <div align="center">
 <img src="./assets/logo.png" width="70%" height="auto" > 
-<h2 align="center">✨High performance cron & queue scheduler✨</h2>
+<h2 align="center">✨High performance recurring & queue-based scheduler✨</h2>
 <h3 align="center">Please leave a ⭐ as motivation if you liked the lib 😄
 <br>🌪️Currently a WIP and in Active development.</h3>
 
@@ -27,8 +27,8 @@
     - [QuickStart](#examples)
 - [Documentation](docs/General.md)
   - [General concepts](docs/General.md)
-  - [CronManager](docs/CronScheduler.md)
-  - [QueueManager](docs/QueueScheduler.md)
+  - [RecurringManager](docs/RecurringScheduler.md)
+  - [QueueScheduler](docs/QueueScheduler.md)
 - [Benchmarks](#benchmarks) (future)
     - [Performance](#performance) (future)
 - [License](#LICENSE)
@@ -46,9 +46,9 @@ I have developed this library for cases where you need to launch a large count o
 - And in many other projects where you have to do something on time, in large quantities and with a certain frequency
 
 ## 🚀 Features <a id="features" />
-- [x] Implement default cron scheduler
+- [x] Implement default recurring scheduler
 - [x] Implement default queue scheduler
-- [ ] Docs for CustomCronJobManager
+- [ ] Docs for CustomRecurringJobManager
 - [ ] Docs for CustomQueueJobManager
 - [ ] Benchmark for JobResult type
 - [x] Return job result via pub/sub callback event
@@ -56,7 +56,7 @@ I have developed this library for cases where you need to launch a large count o
 - [ ] Cover InMemoryQueue unit tests
 - [ ] Implement PSQLQueue
 - [ ] Cover PSQLQueue unit tests 
-- [x] Cover cron scheduler unit tests
+- [x] Cover recurring scheduler unit tests
 - [x] Cover queue scheduler unit tests
 - [ ] A structure for store jobs. take: O(1) push: (?)
 - [ ] Refactot Task to ValueTask
@@ -82,7 +82,7 @@ Every Job return the type <b>JobResult<<i>IJobOk</i>, <i>IJobFail</i>></b> if a 
 **Result matching**
 
 ```csharp
-    JobResult<Cron.JobOk, Cron.JobFail> result;
+    JobResult<Recurring.JobOk, Recurring.JobFail> result;
     
     // Do action
     result.Do(
@@ -98,27 +98,27 @@ Every Job return the type <b>JobResult<<i>IJobOk</i>, <i>IJobFail</i>></b> if a 
     Console.WriteLine(msg);
 ```
 
-FabulousScheduler uses a builder pattern that allows you to conveniently create a cron or queue jobs for executing.
+FabulousScheduler uses a builder pattern that allows you to conveniently create a recurring or queue-based jobs for executing.
 <br>
 1. SetConfig()
 2. Register jobs
 3. RunScheduler()
 
 ```csharp
-using FabulousScheduler.Cron.Interfaces;
-using FabulousScheduler.Cron.Result;
+using FabulousScheduler.Recurring.Interfaces;
+using FabulousScheduler.Recurring.Result;
 using FabulousScheduler.Core.Types;
-using FabulousScheduler.Cron;
+using FabulousScheduler.Recurring;
 
 
 var config = new Config(
     maxParallelJobExecute: 5,
     sleepAfterCheck: TimeSpan.FromMilliseconds(100)
 );
-CronJobManager.SetConfig(config);
+RecurringJobManager.SetConfig(config);
 
 // Register callback for job's result
-CronJobManager.JobResultEvent += (ref ICronJob job, ref JobResult<JobOk, JobFail> res) =>
+RecurringJobManager.JobResultEvent += (ref IRecurringJob job, ref JobResult<JobOk, JobFail> res) =>
 {
     var now = DateTime.Now;
     if (res.IsSuccess)
@@ -128,7 +128,7 @@ CronJobManager.JobResultEvent += (ref ICronJob job, ref JobResult<JobOk, JobFail
 };
 
 // Register a job
-CronJobManager.Register(
+RecurringJobManager.Register(
     action: () =>
     {
         //do some work
@@ -141,7 +141,7 @@ CronJobManager.Register(
 );
 
 // Start a job scheduler
-CronJobManager.RunScheduler();
+RecurringJobManager.RunScheduler();
 
 /*
  * The job will fall asleep for 1 second after success completion, then it will wake up and will be push the job pool
@@ -149,7 +149,7 @@ CronJobManager.RunScheduler();
 
 Thread.Sleep(-1);
 ```
-<img src="assets/deminstration_cron_jobmanager.gif" width="auto" height="50%">
+<img src="assets/deminstration_recurring_jobmanager.gif" width="auto" height="50%">
 
 
 ## 📄 LICENSE <a id="LICENSE" />

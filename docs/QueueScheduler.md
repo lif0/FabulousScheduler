@@ -1,4 +1,4 @@
-# Queue Scheduler
+# Queue-based Scheduler
 
 ### 📖 Contents
 

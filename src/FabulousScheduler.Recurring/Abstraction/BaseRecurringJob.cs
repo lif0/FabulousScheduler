@@ -1,12 +1,12 @@
+using FabulousScheduler.Recurring.Interfaces;
+using FabulousScheduler.Recurring.Result;
+using FabulousScheduler.Recurring.Enums;
 using FabulousScheduler.Core.Types;
-using FabulousScheduler.Cron.Enums;
-using FabulousScheduler.Cron.Result;
-using FabulousScheduler.Cron.Interfaces;
 
-namespace FabulousScheduler.Cron.Abstraction;
+namespace FabulousScheduler.Recurring.Abstraction;
 
-/// <summary> Base cron job </summary>
-public abstract class BaseCronJob : ICronJob
+/// <summary> Base recurring job </summary>
+public abstract class BaseRecurringJob : IRecurringJob
 {
 	#region Private
 	
@@ -15,7 +15,7 @@ public abstract class BaseCronJob : ICronJob
 	private bool _disposed;
 	private ulong _totalFail;
 	private ulong _totalRun;
-	private CronJobStateEnum _state;
+	private JobStateEnum _state;
 
 	#endregion
 
@@ -31,7 +31,7 @@ public abstract class BaseCronJob : ICronJob
 	public string Category { get; }
 	public TimeSpan SleepDuration { get; }
 
-	public CronJobStateEnum State
+	public JobStateEnum State
 	{
 		get
 		{
@@ -53,13 +53,13 @@ public abstract class BaseCronJob : ICronJob
 
 	#endregion
 	
-	protected BaseCronJob(string name,  string category, TimeSpan sleepDuration, bool isAsyncAction)
+	protected BaseRecurringJob(string name,  string category, TimeSpan sleepDuration, bool isAsyncAction)
 	{
 		ID = Guid.NewGuid();
 		Name = name;
 		Category = category;
 		IsAsyncAction = isAsyncAction;
-		this._state = CronJobStateEnum.Ready;
+		this._state = JobStateEnum.Ready;
 
 		if (sleepDuration  == TimeSpan.MinValue || sleepDuration == TimeSpan.Zero)
 		{
@@ -79,17 +79,17 @@ public abstract class BaseCronJob : ICronJob
 		{
 			if (_disposed)
 			{
-				_state = CronJobStateEnum.Disposed;
-				return new JobFail(CronJobFailEnum.Disposed, this.ID, $"The job {Name} was disposed");
+				_state = JobStateEnum.Disposed;
+				return new JobFail(JobFailEnum.Disposed, this.ID, $"The job {Name} was disposed");
 			}
 			
-			if (_state is not (CronJobStateEnum.Ready or CronJobStateEnum.Waiting))
+			if (_state is not (JobStateEnum.Ready or JobStateEnum.Waiting))
 			{
 				string msg = $"Incorrect state run the job. Job has state: {State}";
-				return new JobFail(CronJobFailEnum.IncorrectState, this.ID, msg);
+				return new JobFail(JobFailEnum.IncorrectState, this.ID, msg);
 			}
 
-			_state = CronJobStateEnum.Running;
+			_state = JobStateEnum.Running;
 		}
 		Interlocked.Increment(ref _totalRun);
 
@@ -124,22 +124,22 @@ public abstract class BaseCronJob : ICronJob
 		catch (Exception e)
 		{
 			Interlocked.Increment(ref _totalFail);
-			return new JobFail(CronJobFailEnum.InternalException, this.ID, e.Message, e);
+			return new JobFail(JobFailEnum.InternalException, this.ID, e.Message, e);
 		}
 		finally
 		{
-			_state = CronJobStateEnum.Sleeping;
+			_state = JobStateEnum.Sleeping;
 			LastExecute = dt ?? DateTime.Now;
 		}
 	}
 
-	void ICronJob.ResetState()
+	void IRecurringJob.ResetState()
 	{
 		lock (_lock)
 		{
-			if(_disposed || _state != CronJobStateEnum.Ready) return;
+			if(_disposed || _state != JobStateEnum.Ready) return;
 
-			_state = CronJobStateEnum.Waiting;
+			_state = JobStateEnum.Waiting;
 		}
 	}
 
@@ -147,9 +147,9 @@ public abstract class BaseCronJob : ICronJob
 	public void Dispose()
 	{
 		_disposed = true;
-		if (_state is CronJobStateEnum.Ready)
+		if (_state is JobStateEnum.Ready)
 		{
-			_state = CronJobStateEnum.Disposed;
+			_state = JobStateEnum.Disposed;
 		}
 	}
 
@@ -165,19 +165,19 @@ public abstract class BaseCronJob : ICronJob
 
 	private void UpdateState()
 	{
-		if(_state is not CronJobStateEnum.Sleeping) return;
+		if(_state is not JobStateEnum.Sleeping) return;
 		if(SleepDuration == TimeSpan.MaxValue) return;
 
 		lock (_lock)
 		{
 			if (SleepDuration == TimeSpan.Zero)
 			{
-				_state = CronJobStateEnum.Ready;
+				_state = JobStateEnum.Ready;
 			}
 
 			if (LastSuccessExecute == null || DateTime.Now.Subtract(LastSuccessExecute.Value.AddMinutes(SleepDuration.TotalMinutes)).Ticks > 0)
 			{
-				_state = CronJobStateEnum.Ready;
+				_state = JobStateEnum.Ready;
 			}
 		}
 	}

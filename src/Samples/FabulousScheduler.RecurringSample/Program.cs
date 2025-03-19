@@ -1,19 +1,19 @@
-﻿using FabulousScheduler.Cron.Interfaces;
-using FabulousScheduler.Cron.Result;
-using FabulousScheduler.Core.Types;
-using FabulousScheduler.Cron;
+﻿using FabulousScheduler.Core.Types;
+using FabulousScheduler.Recurring;
+using FabulousScheduler.Recurring.Interfaces;
+using FabulousScheduler.Recurring.Result;
 
 var config = new Configuration(
     maxParallelJobExecute: 5,
     sleepAfterCheck: TimeSpan.FromMilliseconds(100)
 );
-CronJobManager.SetConfig(config);
+RecurringJobManager.SetConfig(config);
 
 // Start a job scheduler
-CronJobManager.RunScheduler();
+RecurringJobManager.RunScheduler();
 
 // Register callback for job's result
-CronJobManager.JobResultEvent += (ref ICronJob job, ref JobResult<JobOk, JobFail> res) =>
+RecurringJobManager.JobResultEvent += (ref IRecurringJob job, ref JobResult<JobOk, JobFail> res) =>
 {
     var now = DateTime.Now;
     if (res.IsSuccess)
@@ -23,7 +23,7 @@ CronJobManager.JobResultEvent += (ref ICronJob job, ref JobResult<JobOk, JobFail
 };
 
 // Register a job
-CronJobManager.Register(
+RecurringJobManager.Register(
     action: () =>
     {
         //do some work

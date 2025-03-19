@@ -1,25 +1,25 @@
-using FabulousScheduler.Cron.Interfaces;
-using FabulousScheduler.Cron.Internal;
-using FabulousScheduler.Cron.Result;
 using FabulousScheduler.Core.Types;
 using FabulousScheduler.Exception;
+using FabulousScheduler.Recurring.Interfaces;
+using FabulousScheduler.Recurring.Internal;
+using FabulousScheduler.Recurring.Result;
 
-namespace FabulousScheduler.Cron;
+namespace FabulousScheduler.Recurring;
 
-/// <summary> Cron job's manager </summary>
-public static class CronJobManager
+/// <summary> Recurring job's manager </summary>
+public static class RecurringJobManager
 {
     private static readonly object _syncScheduler = new();
     private static Configuration? _config;
-    private static CronScheduler? _scheduler;
+    private static RecurringScheduler? _scheduler;
 
     /// <summary>
     /// Callback job's result
     /// </summary>
-    public static event ICronJobScheduler.JobResultEventHandler? JobResultEvent;
+    public static event IRecurringJobScheduler.JobResultEventHandler? JobResultEvent;
 
     /// <summary>
-    /// Set config for CronJobManager
+    /// Set config for RecurringJobManager
     /// </summary>
     /// <param name="config">Config instance</param>
     /// <exception cref="SetConfigAfterRunSchedulingException"> if you call this method after calling <see cref="RunScheduler"/> method</exception>
@@ -29,7 +29,7 @@ public static class CronJobManager
         {
             if (_scheduler != null)
             {
-                throw new SetConfigAfterRunSchedulingException(nameof(CronScheduler));
+                throw new SetConfigAfterRunSchedulingException(nameof(RecurringScheduler));
             }
             _config = config;
         }
@@ -158,7 +158,7 @@ public static class CronJobManager
         {
             if (_scheduler == null)
             {
-                throw new SchedulerNotRunnableException(nameof(CronJobManager));
+                throw new SchedulerNotRunnableException(nameof(RecurringJobManager));
             }
         }
 
@@ -169,17 +169,17 @@ public static class CronJobManager
 
         if (actionSync != null)
         {
-            return _scheduler.RegisterCron(actionSync, name, category, sleepDuration);
+            return _scheduler.Register(actionSync, name, category, sleepDuration);
         }
 
-        return _scheduler.RegisterCron(actionAsync!, name, category, sleepDuration); 
+        return _scheduler.Register(actionAsync!, name, category, sleepDuration); 
     }
     
     private static void InternalInitUnsafe()
     {
         _scheduler = new(_config);
         _scheduler.JobResultEvent += 
-            (ref ICronJob sender, ref JobResult<JobOk, JobFail> e) =>
+            (ref IRecurringJob sender, ref JobResult<JobOk, JobFail> e) =>
                 JobResultEvent?.Invoke(ref sender, ref e);
     }
 

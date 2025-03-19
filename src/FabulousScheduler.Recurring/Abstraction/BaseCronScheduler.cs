@@ -1,11 +1,11 @@
-using System.Collections.Concurrent;
-using System.Runtime.CompilerServices;
+using FabulousScheduler.Recurring.Interfaces;
 using FabulousScheduler.Core.Interfaces;
-using FabulousScheduler.Cron.Interfaces;
+using System.Runtime.CompilerServices;
+using System.Collections.Concurrent;
 
-namespace FabulousScheduler.Cron.Abstraction;
+namespace FabulousScheduler.Recurring.Abstraction;
 
-public abstract class BaseCronScheduler : ICronJobScheduler
+public abstract class BaseRecurringScheduler : IRecurringJobScheduler
 {
 #if DEBUGWITHCONSOLE
 	private readonly Guid _debugId = Guid.NewGuid();
@@ -18,25 +18,25 @@ public abstract class BaseCronScheduler : ICronJobScheduler
 	// private
 	private Task? _mainLoop;
 	private readonly SemaphoreSlim _jobExecutorLimiter;
-	private readonly ConcurrentDictionary<Guid, (ICronJob, Task)> _inProgress;
-	private readonly ConcurrentQueue<ICronJob> _queue;
+	private readonly ConcurrentDictionary<Guid, (IRecurringJob, Task)> _inProgress;
+	private readonly ConcurrentQueue<IRecurringJob> _queue;
 	private readonly CancellationTokenSource _cancellationTokenSource;
-	private readonly Dictionary<Guid, ICronJob> _registeredJob;
+	private readonly Dictionary<Guid, IRecurringJob> _registeredJob;
 
 	// protected
 	protected readonly Configuration Config;
 
 	// public
-	public event ICronJobScheduler.JobResultEventHandler? JobResultEvent;
+	public event IRecurringJobScheduler.JobResultEventHandler? JobResultEvent;
 
-	protected BaseCronScheduler(Configuration? config)
+	protected BaseRecurringScheduler(Configuration? config)
 	{
 		Config = config ?? Configuration.Default;
 		
-		_registeredJob = new Dictionary<Guid, ICronJob>();
+		_registeredJob = new Dictionary<Guid, IRecurringJob>();
 		_jobExecutorLimiter = new SemaphoreSlim(Config.MaxParallelJobExecute, Config.MaxParallelJobExecute);
-		_inProgress = new ConcurrentDictionary<Guid, (ICronJob, Task)>(Environment.ProcessorCount, this.Config.MaxParallelJobExecute);
-		_queue = new ConcurrentQueue<ICronJob>();
+		_inProgress = new ConcurrentDictionary<Guid, (IRecurringJob, Task)>(Environment.ProcessorCount, this.Config.MaxParallelJobExecute);
+		_queue = new ConcurrentQueue<IRecurringJob>();
 		_cancellationTokenSource = new CancellationTokenSource();
 	}
 
@@ -45,7 +45,7 @@ public abstract class BaseCronScheduler : ICronJobScheduler
 	/// </summary>
 	/// <param name="job">job instance</param>
 	/// <returns>true - if job is registered, otherwise false</returns>
-	protected bool Register(ICronJob job)
+	protected bool Register(IRecurringJob job)
 	{
 		lock (_jobsDictLocker)
 		{
@@ -58,12 +58,12 @@ public abstract class BaseCronScheduler : ICronJobScheduler
 	/// </summary>
 	/// <param name="jobs">jobs</param>
 	/// <returns>count success registered jobs</returns>
-	protected int Register(IEnumerable<ICronJob> jobs)
+	protected int Register(IEnumerable<IRecurringJob> jobs)
 	{
 		int success = 0;
 		lock (_jobsDictLocker)
 		{
-			foreach (ICronJob job in jobs)
+			foreach (IRecurringJob job in jobs)
 			{
 				if (RegisterUnsafe(job))
 				{
@@ -96,7 +96,7 @@ public abstract class BaseCronScheduler : ICronJobScheduler
 	/// <returns>Time: O(n) - BAD</returns>
 	private bool TryScheduleJobs()
 	{
-		ICronJob[] readyJobs;
+		IRecurringJob[] readyJobs;
 		lock (_jobsDictLocker)
 		{
 			readyJobs = _registeredJob
@@ -145,7 +145,7 @@ public abstract class BaseCronScheduler : ICronJobScheduler
 			Console.WriteLine($"[ExecutableLoop {_debugId:N}] Finish wait JobParallelLimiter");
 #endif
 
-			if (_queue.TryDequeue(out ICronJob? job))
+			if (_queue.TryDequeue(out IRecurringJob? job))
 			{
 				CreateTask(ref job);
 #if DEBUGWITHCONSOLE
@@ -157,11 +157,11 @@ public abstract class BaseCronScheduler : ICronJobScheduler
 	}
 	
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	private void CreateTask(ref ICronJob job)
+	private void CreateTask(ref IRecurringJob job)
 	{
 		var task = Task.Factory.StartNew(async obj =>
 		{
-			var @job = obj as ICronJob;
+			var @job = obj as IRecurringJob;
 			if (@job is null)
 			{
 				ArgumentNullException.ThrowIfNull(@job, nameof(@job));
@@ -182,7 +182,7 @@ public abstract class BaseCronScheduler : ICronJobScheduler
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	private bool RegisterUnsafe(ICronJob job)
+	private bool RegisterUnsafe(IRecurringJob job)
 	{
 #if DEBUGWITHCONSOLE
 		bool result = _registeredJob.TryAdd(job.ID, job);

@@ -5,8 +5,8 @@ using FabulousScheduler.Queue.Enums;
 using System.Collections.Concurrent;
 using FabulousScheduler.Core.Types;
 using FabulousScheduler.Queue;
-using Job.Core.Tests.Cron;
 using System.Diagnostics;
+using Job.Core.Tests.Recurring;
 using Xunit.Abstractions;
 
 namespace Job.Core.Tests.Queue;

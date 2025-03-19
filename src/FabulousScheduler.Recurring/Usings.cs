@@ -1,0 +1,1 @@
+global using State = FabulousScheduler.Recurring.Enums.JobStateEnum;

@@ -1,13 +1,12 @@
-using FabulousScheduler.Cron.Interfaces;
-using FabulousScheduler.Cron.Result;
 using System.Collections.Concurrent;
-using FabulousScheduler.Cron.Enums;
-using FabulousScheduler.Core.Types;
-using FabulousScheduler.Cron;
 using System.Diagnostics;
+using FabulousScheduler.Core.Types;
+using FabulousScheduler.Recurring;
+using FabulousScheduler.Recurring.Enums;
+using FabulousScheduler.Recurring.Interfaces;
+using FabulousScheduler.Recurring.Result;
 
-
-namespace Job.Core.Tests.Cron;
+namespace Job.Core.Tests.Recurring;
 public class JobManagerTests
 {
 	[Fact]
@@ -22,8 +21,8 @@ public class JobManagerTests
 
 		// init
 		var config = new Configuration( maxParallelJobExecute: 1, sleepAfterCheck: TimeSpan.FromHours(1));
-		var scheduler = new TestCronScheduler(config);
-		void ManagerOnJobResultEvent(ref ICronJob sender, ref JobResult<JobOk, JobFail> e)
+		var scheduler = new TestRecurringScheduler(config);
+		void ManagerOnJobResultEvent(ref IRecurringJob sender, ref JobResult<JobOk, JobFail> e)
 		{
 			sw.Stop();
 			Interlocked.Increment(ref countCall);
@@ -47,7 +46,7 @@ public class JobManagerTests
 		Assert.Equal(1u, job.TotalFail);
 		Assert.Null(job.LastSuccessExecute);
 		Assert.NotNull(job.LastExecute);
-		Assert.Equal(CronJobStateEnum.Ready, job.State);
+		Assert.Equal(JobStateEnum.Ready, job.State);
 	}
 
 	[Fact]
@@ -62,9 +61,9 @@ public class JobManagerTests
 
 		// init
 		var config = new Configuration(maxParallelJobExecute: 1, sleepAfterCheck: TimeSpan.FromHours(1));
-		var scheduler = new TestCronScheduler(config);
+		var scheduler = new TestRecurringScheduler(config);
 
-		void ManagerOnJobResultEvent(ref ICronJob sender, ref JobResult<JobOk, JobFail> e)
+		void ManagerOnJobResultEvent(ref IRecurringJob sender, ref JobResult<JobOk, JobFail> e)
 		{
 			sw.Stop();
 			Interlocked.Increment(ref countCall);
@@ -90,7 +89,7 @@ public class JobManagerTests
 		Assert.Equal(0u, job.TotalFail);
 		Assert.NotNull(job.LastSuccessExecute);
 		Assert.NotNull(job.LastExecute);
-		Assert.Equal(CronJobStateEnum.Ready, job.State);
+		Assert.Equal(JobStateEnum.Ready, job.State);
 	}
 	
 	[Fact]
@@ -105,8 +104,8 @@ public class JobManagerTests
 	
 		// init
 		var config = new Configuration( maxParallelJobExecute: parallelJobs, sleepAfterCheck: TimeSpan.FromMilliseconds(50));
-		var manager = new TestCronScheduler(config);
-		manager.JobResultEvent += (ref ICronJob _, ref JobResult<JobOk, JobFail> e) =>
+		var manager = new TestRecurringScheduler(config);
+		manager.JobResultEvent += (ref IRecurringJob _, ref JobResult<JobOk, JobFail> e) =>
 		{
 			hash.AddOrUpdate(e.JobID, _ => 1, (_, b) => ++b);
 	
@@ -150,8 +149,8 @@ public class JobManagerTests
 	
 		// init
 		var config = new Configuration( maxParallelJobExecute: parallelJobs, sleepAfterCheck: TimeSpan.FromMilliseconds(50));
-		var manager = new TestCronScheduler(config);
-		manager.JobResultEvent += (ref ICronJob _, ref JobResult<JobOk, JobFail> e) =>
+		var manager = new TestRecurringScheduler(config);
+		manager.JobResultEvent += (ref IRecurringJob _, ref JobResult<JobOk, JobFail> e) =>
 		{
 			hash.AddOrUpdate(e.JobID, _ => 1, (_, b) => ++b);
 	
@@ -195,8 +194,8 @@ public class JobManagerTests
 	
 		// init
 		var config = new Configuration( maxParallelJobExecute: parallelJobs, sleepAfterCheck: TimeSpan.FromMilliseconds(50));
-		var manager = new TestCronScheduler(config);
-		manager.JobResultEvent += (ref ICronJob _, ref JobResult<JobOk, JobFail> e) =>
+		var manager = new TestRecurringScheduler(config);
+		manager.JobResultEvent += (ref IRecurringJob _, ref JobResult<JobOk, JobFail> e) =>
 		{
 			hash.AddOrUpdate(e.JobID, _ => 1, (_, b) => ++b);
 	
@@ -239,8 +238,8 @@ public class JobManagerTests
 	
 		// init
 		var config = new Configuration( maxParallelJobExecute: parallelJobs, sleepAfterCheck: TimeSpan.FromMilliseconds(10));
-		var manager = new TestCronScheduler(config);
-		manager.JobResultEvent += (ref ICronJob _, ref JobResult<JobOk, JobFail> e) =>
+		var manager = new TestRecurringScheduler(config);
+		manager.JobResultEvent += (ref IRecurringJob _, ref JobResult<JobOk, JobFail> e) =>
 		{
 			hash.AddOrUpdate(e.JobID, _ => 1, (_, b) => ++b);
 		};
@@ -275,8 +274,8 @@ public class JobManagerTests
 	
 		// init
 		var config = new Configuration( maxParallelJobExecute: parallelJobs, sleepAfterCheck: TimeSpan.FromMilliseconds(20) );
-		var scheduler = new TestCronScheduler(config);
-		scheduler.JobResultEvent += (ref ICronJob _, ref JobResult<JobOk, JobFail> e) =>
+		var scheduler = new TestRecurringScheduler(config);
+		scheduler.JobResultEvent += (ref IRecurringJob _, ref JobResult<JobOk, JobFail> e) =>
 		{
 			hash.AddOrUpdate(e.JobID, _ => 1, (_, b) => ++b);
 			Interlocked.Increment(ref countCall);

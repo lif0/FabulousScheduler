@@ -1,16 +1,14 @@
-using System.Diagnostics.CodeAnalysis;
 using FabulousScheduler.Core.Interfaces.Result;
-using FabulousScheduler.Cron.Enums;
+using FabulousScheduler.Recurring.Enums;
 
-namespace FabulousScheduler.Cron.Result;
+namespace FabulousScheduler.Recurring.Result;
 
 /// <summary>
 /// <inheritdoc cref="IJobFail"/>
 /// </summary>
-[SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
 public sealed class JobFail : IJobFail
 {
-	public JobFail(CronJobFailEnum reason, Guid jobID, string message, Exception? exception = null)
+	public JobFail(JobFailEnum reason, Guid jobID, string message, Exception? exception = null)
 	{
 		ID = jobID;
 		Reason = reason;
@@ -29,9 +27,9 @@ public sealed class JobFail : IJobFail
 	public string Message { get; }
 
 	/// <summary>
-	/// <inheritdoc cref="CronJobFailEnum"/>
+	/// <inheritdoc cref="JobFailEnum"/>
 	/// </summary>
-	public CronJobFailEnum Reason { get; }
+	public JobFailEnum Reason { get; }
 
 	/// <summary>
 	/// Exception

@@ -1,13 +1,14 @@
+using FabulousScheduler.Recurring.Interfaces;
+using FabulousScheduler.Recurring.Abstraction;
+using FabulousScheduler.Recurring.Enums;
+using FabulousScheduler.Core.Types;
+using FabulousScheduler.Recurring;
+using FabulousScheduler.Recurring.Result;
+
 // ReSharper disable UnusedMethodReturnValue.Global
 // ReSharper disable ClassNeverInstantiated.Global
-using FabulousScheduler.Cron;
-using FabulousScheduler.Cron.Enums;
-using FabulousScheduler.Core.Types;
-using FabulousScheduler.Cron.Result;
-using FabulousScheduler.Cron.Interfaces;
-using FabulousScheduler.Cron.Abstraction;
 
-namespace Job.Core.Tests.Cron;
+namespace Job.Core.Tests.Recurring;
 
 internal static class Helper
 {
@@ -43,11 +44,11 @@ internal static class Helper
 	}
 }
 
-internal class CronJobRandomResult : BaseCronJob
+internal class RecurringJobRandomResult : BaseRecurringJob
 {
 	private TimeSpan JobSimulateWorkTime { get; }
 
-	public CronJobRandomResult(string name, TimeSpan sleepDuration, TimeSpan jobSimulateWorkTime) : base(name,"test random result", sleepDuration, true)
+	public RecurringJobRandomResult(string name, TimeSpan sleepDuration, TimeSpan jobSimulateWorkTime) : base(name,"test random result", sleepDuration, true)
 	{
 		JobSimulateWorkTime = jobSimulateWorkTime;
 	}
@@ -61,15 +62,15 @@ internal class CronJobRandomResult : BaseCronJob
 			return new JobOk(this.ID);
 		}
 
-		return new JobFail(CronJobFailEnum.FailedExecute, this.ID, "test error");
+		return new JobFail(JobFailEnum.FailedExecute, this.ID, "test error");
 	}
 }
 
-internal class CronJobOkResult : BaseCronJob
+internal class RecurringJobOkResult : BaseRecurringJob
 {
 	private TimeSpan JobSimulateWorkTime { get; }
 
-	public CronJobOkResult(string name, TimeSpan sleepDuration, TimeSpan jobSimulateWorkTime) : base(name,"test success", sleepDuration, true)
+	public RecurringJobOkResult(string name, TimeSpan sleepDuration, TimeSpan jobSimulateWorkTime) : base(name,"test success", sleepDuration, true)
 	{
 		JobSimulateWorkTime = jobSimulateWorkTime;
 	}
@@ -82,11 +83,11 @@ internal class CronJobOkResult : BaseCronJob
 
 }
 
-internal class CronJobFailedExecuteResult : BaseCronJob
+internal class RecurringJobFailedExecuteResult : BaseRecurringJob
 {
 	private TimeSpan JobSimulateWorkTime { get; }
 
-	public CronJobFailedExecuteResult(string name, TimeSpan sleepDuration, TimeSpan jobSimulateWorkTime) : base(name,"test error", sleepDuration, true)
+	public RecurringJobFailedExecuteResult(string name, TimeSpan sleepDuration, TimeSpan jobSimulateWorkTime) : base(name,"test error", sleepDuration, true)
 	{
 		JobSimulateWorkTime = jobSimulateWorkTime;
 	}
@@ -94,17 +95,17 @@ internal class CronJobFailedExecuteResult : BaseCronJob
 	protected override async Task<JobResult<JobOk, JobFail>> ActionJob()
 	{
 		await Task.Delay(JobSimulateWorkTime);
-		return new JobFail(CronJobFailEnum.FailedExecute, this.ID, "test error");
+		return new JobFail(JobFailEnum.FailedExecute, this.ID, "test error");
 	}
 
 	
 }
 
-internal class CronJobInternalExceptionResult : BaseCronJob
+internal class RecurringJobInternalExceptionResult : BaseRecurringJob
 {
 	private TimeSpan JobSimulateWorkTime { get; }
 
-	public CronJobInternalExceptionResult(string name, TimeSpan sleepDuration, TimeSpan jobSimulateWorkTime) : base(name, "test error", sleepDuration, true)
+	public RecurringJobInternalExceptionResult(string name, TimeSpan sleepDuration, TimeSpan jobSimulateWorkTime) : base(name, "test error", sleepDuration, true)
 	{
 		JobSimulateWorkTime = jobSimulateWorkTime;
 	}
@@ -117,16 +118,16 @@ internal class CronJobInternalExceptionResult : BaseCronJob
 
 }
 
-internal class TestCronScheduler : BaseCronScheduler
+internal class TestRecurringScheduler : BaseRecurringScheduler
 {
-	public TestCronScheduler(Configuration? config) : base(config) { }
+	public TestRecurringScheduler(Configuration? config) : base(config) { }
 
-	public new bool Register(ICronJob job)
+	public new bool Register(IRecurringJob job)
 	{
 		return base.Register(job);
 	}
 
-	public new int Register(IEnumerable<ICronJob> jobs)
+	public new int Register(IEnumerable<IRecurringJob> jobs)
 	{
 		return base.Register(jobs);
 	}
