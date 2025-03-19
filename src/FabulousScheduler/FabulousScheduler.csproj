@@ -39,7 +39,6 @@
     <ItemGroup>
       <None Include="..\..\.github\images\icon.png">
         <Pack>True</Pack>
-        <PackagePath></PackagePath>
         <Link>icon.png</Link>
       </None>
     </ItemGroup>
