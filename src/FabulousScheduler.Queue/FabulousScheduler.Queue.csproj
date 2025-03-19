@@ -40,6 +40,7 @@
         <Pack>True</Pack>
         <PackagePath></PackagePath>
         <Link>icon.png</Link>
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
     </ItemGroup>
 

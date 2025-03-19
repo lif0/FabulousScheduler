@@ -40,6 +40,7 @@
       <None Include="..\..\.github\images\icon.png">
         <Pack>True</Pack>
         <Link>icon.png</Link>
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
     </ItemGroup>
 
