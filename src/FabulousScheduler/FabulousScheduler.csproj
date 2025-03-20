@@ -12,6 +12,7 @@
         <PackageTags>scheduler performance-scheduler grabber fluent recurring-job custom-cron advanced-cron-scheduler advanced-queue-scheduler custom-queue grab-html recurring-task recurring-scheduler queue-based-job queue-based-task advanced-recurring-scheduler advanced-queue-based-scheduler custom-recurring</PackageTags>
         <IsPackable>true</IsPackable>
         <PackageIcon>icon.png</PackageIcon>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
         <Version>1.0.0</Version>
         <Configurations>Debug;Release</Configurations>
         <Platforms>AnyCPU</Platforms>
@@ -37,9 +38,10 @@
     </ItemGroup>
     
     <ItemGroup>
-      <None Include="..\..\.github\images\icon.png">
-        <Pack>True</Pack>
-        <Link>icon.png</Link>
-      </None>
+      <None Include="..\..\.github\images\icon.png" Pack="true" PackagePath="\" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="..\..\README.md" Pack="true" PackagePath="\" />
     </ItemGroup>
 </Project>

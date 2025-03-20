@@ -13,6 +13,7 @@
         <IsPackable>true</IsPackable>
         <Version>1.0.0</Version>
         <PackageIcon>icon.png</PackageIcon>
+        <PackageReadmeFile>QueueBased.md</PackageReadmeFile>
         <Configurations>Debug;Release</Configurations>
         <Platforms>AnyCPU</Platforms>
     </PropertyGroup>
@@ -36,12 +37,11 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Include="..\..\.github\images\icon.png">
-        <Pack>True</Pack>
-        <PackagePath></PackagePath>
-        <Link>icon.png</Link>
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
+        <None Include="..\..\.github\images\icon.png" Pack="true" PackagePath="\" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="..\..\docs\QueueBased.md" Pack="true" PackagePath="\" />
     </ItemGroup>
 
 </Project>
