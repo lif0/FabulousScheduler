@@ -6,7 +6,7 @@
 - [Job result (JobResult<Ok,Fail>)](#jobresult)
 - [Usage](#usage)
     - [a Job](#ajob)
-    - [CronJobManager](#cronjobmanager)
+    - [RecurringJobManager](#recurringjobmanager)
     - [QueueJobManager](#queuejobmanager)
 - [Benchmarks](#benchmarks)
     - [Performance](#performance)

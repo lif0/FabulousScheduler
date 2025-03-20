@@ -12,6 +12,7 @@
         <IsPackable>true</IsPackable>
         <Version>1.0.0</Version>
         <PackageIcon>icon.png</PackageIcon>
+        <PackageReadmeFile>Recurring.md</PackageReadmeFile>
         <Configurations>Debug;Release</Configurations>
         <Platforms>AnyCPU</Platforms>
         <AssemblyName>FabulousScheduler.Recurring</AssemblyName>
@@ -37,11 +38,10 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Include="..\..\.github\images\icon.png">
-        <Pack>True</Pack>
-        <Link>icon.png</Link>
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
+        <None Include="..\..\.github\images\icon.png" Pack="true" PackagePath="\" />
     </ItemGroup>
 
+    <ItemGroup>
+        <None Include="..\..\docs\Recurring.md" Pack="true" PackagePath="\" />
+    </ItemGroup>
 </Project>
