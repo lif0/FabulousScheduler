@@ -113,7 +113,7 @@ public abstract class BaseRecurringScheduler : IRecurringJobScheduler
 		return true;
 	} 
 
-	private async void ExecutableLoop()
+	private async Task ExecutableLoop()
 	{
 		while (!_cancellationTokenSource.Token.IsCancellationRequested)
 		{

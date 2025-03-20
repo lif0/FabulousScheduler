@@ -48,7 +48,7 @@ public class BaseQueueScheduler : IQueueJobScheduler
 
     #region Private
 
-    private async void ExecutableLoop()
+    private async Task ExecutableLoop()
     {
         while (!_cancellationTokenSource.Token.IsCancellationRequested)
         {
