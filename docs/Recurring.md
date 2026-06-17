@@ -12,7 +12,7 @@ Recurring jobs run again and again. After a **successful** run a job sleeps for 
     - [BaseRecurringScheduler](#baserecurringshceduler)
     - [Example](#example)
 - [Benchmarks](#benchmarks)
-    - [Performance](#performance)
+    - [Performance](#performance)[QueueScheduler.md](QueueScheduler.md)
 
 ---
 
