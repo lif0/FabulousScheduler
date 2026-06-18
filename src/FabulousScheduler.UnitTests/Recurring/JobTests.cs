@@ -6,7 +6,7 @@ namespace Job.Core.Tests.Recurring;
 public class JobTests
 {
 	[Fact]
-	public async void Fail_FailedExecute()
+	public async Task Fail_FailedExecute()
 	{
 		var job = new Job_Fail("failExecuteJob", TimeSpan.Zero, TimeSpan.FromMilliseconds(25));
 		var res = await job.ExecuteAsync();
@@ -21,7 +21,7 @@ public class JobTests
 	}
 
 	[Fact]
-	public async void Fail_InternalException()
+	public async Task Fail_InternalException()
 	{
 		var job = new Job_FailExp("failInternalExceptionJob", TimeSpan.Zero, TimeSpan.FromMilliseconds(25));
 		var res = await job.ExecuteAsync();
@@ -36,7 +36,7 @@ public class JobTests
 	}
 	
 	[Fact]
-	public async void Fail_IncorrectState()
+	public async Task Fail_IncorrectState()
 	{
 		var job = new Job_Ok("ok_butFailIncorrectStateJob", TimeSpan.FromHours(1), TimeSpan.FromMilliseconds(20));
 		await job.ExecuteAsync(); //stat to sleep
@@ -53,7 +53,7 @@ public class JobTests
 	}
 	
 	[Fact]
-	public async void Fail_Disposed()
+	public async Task Fail_Disposed()
 	{
 		var job = new Job_Ok("ok_butFailDisposedJob", TimeSpan.Zero, TimeSpan.FromMilliseconds(20));
 		await job.DisposeAsync();
@@ -69,7 +69,7 @@ public class JobTests
 	}
 
 	[Fact]
-	public async void Success_ChangeStateToSleep()
+	public async Task Success_ChangeStateToSleep()
 	{
 		const int oneTimeJobMs = 25;
 		
@@ -85,7 +85,7 @@ public class JobTests
 	}
 
 	[Fact]
-	public async void Success_ChangeToReady()
+	public async Task Success_ChangeToReady()
 	{
 		const int oneTimeJobMs = 25;
 
@@ -101,7 +101,7 @@ public class JobTests
 	}
 
 	[Fact]
-	public async void Success_SleepDuration_Max()
+	public async Task Success_SleepDuration_Max()
 	{
 		const int oneTimeJobMs = 25;
 
@@ -117,7 +117,7 @@ public class JobTests
 	}
 
 	[Fact]
-	public async void Success_SleepDuration_Min()
+	public async Task Success_SleepDuration_Min()
 	{
 		const int oneTimeJobMs = 25;
 
@@ -133,7 +133,7 @@ public class JobTests
 	}
 
 	[Fact]
-	public async void Success_SleepDuration_Zero()
+	public async Task Success_SleepDuration_Zero()
 	{
 		const int oneTimeJobMs = 25;
 
@@ -149,7 +149,7 @@ public class JobTests
 	}
 
 	[Fact]
-	public async void Fail_CheckSpeed()
+	public async Task Fail_CheckSpeed()
 	{
 		const int oneTimeJobMs = 20;
 		var job = new Job_Fail("jobFail", TimeSpan.FromHours(1), TimeSpan.FromMilliseconds(oneTimeJobMs));
@@ -169,7 +169,7 @@ public class JobTests
 	
 	[Fact]
 	// ReSharper disable once AsyncVoidMethod
-	public async void Success_CheckSpeed()
+	public async Task Success_CheckSpeed()
 	{
 		const int oneTimeJobMs = 20;
 		var job = new Job_Ok("jobSuccess", TimeSpan.FromHours(1), TimeSpan.FromMilliseconds(oneTimeJobMs));

@@ -21,7 +21,7 @@ public class JobManagerTests
 	}
 
 	[Fact]
-	public async void Time_FailOne()
+	public async Task Time_FailOne()
 	{
 		const int oneTimeJobMs = 500;
 		
@@ -65,7 +65,7 @@ public class JobManagerTests
 	}
 	
 	[Fact]
-	public async void Time_FailExpOne()
+	public async Task Time_FailExpOne()
 	{
 		const int oneTimeJobMs = 500;
 		
@@ -109,7 +109,7 @@ public class JobManagerTests
 	}
 
 	[Fact]
-	public async void Time_SuccessOne()
+	public async Task Time_SuccessOne()
 	{
 		const int oneTimeJobMs = 500;
 		
@@ -153,7 +153,7 @@ public class JobManagerTests
 	}
 	
 	[Fact]
-	public async void Time_SuccessDuplicateJob()
+	public async Task Time_SuccessDuplicateJob()
 	{
 		const int oneTimeJobMs = 500;
 	
@@ -216,7 +216,7 @@ public class JobManagerTests
 	}
 	
 	[Fact]
-	public async void Time_AttemptsFailNextOk()
+	public async Task Time_AttemptsFailNextOk()
 	{
 		const int oneTimeJobMs = 250;
 		
@@ -275,7 +275,7 @@ public class JobManagerTests
 	}
  	
 	[Fact]
-	public async void Time_1k()
+	public async Task Time_1k()
 	{
 		int countJobs = 1000, oneTimeJobMs = 50, parallelJobs = Environment.ProcessorCount*10;
 		
@@ -329,7 +329,7 @@ public class JobManagerTests
 	}
 
 	[Fact]
-	public async void Time_5k()
+	public async Task Time_5k()
 	{
 		int countJobs = 5000, oneTimeJobMs = 20, parallelJobs = Environment.ProcessorCount*10;
 		
@@ -385,7 +385,7 @@ public class JobManagerTests
 
 /*	
     [Fact]
-	public async void Time_50k()
+	public async Task Time_50k()
 	{
 		int countJobs = 50000, oneTimeJobMs = 5, parallelJobs = Environment.ProcessorCount*10;
 	

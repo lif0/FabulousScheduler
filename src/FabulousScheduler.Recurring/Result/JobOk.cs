@@ -10,6 +10,6 @@ public sealed class JobOk : IJobOk
         ID = jobID;
     }
     
-    /// <summary> <inheritdoc/> </summary>
+    /// <summary> <inheritdoc cref="IJobOk.ID"/> </summary>
     public Guid ID { get; }
 }

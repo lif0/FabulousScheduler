@@ -24,7 +24,7 @@ public class DefaultJobManagerTests
 	}
 
 	[Fact]
-    public async void Time_FailOne()
+    public async Task Time_FailOne()
     {
 	    // config
         const int oneTimeJobMs = 100;
@@ -64,7 +64,7 @@ public class DefaultJobManagerTests
     }
 
     [Fact]
-    public async void Time_SuccessOne()
+    public async Task Time_SuccessOne()
     {
 	    // config
 	    const int oneTimeJobMs = 100;
