@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet build *)",
+      "Read(//home/ubuntu_ai/**)",
+      "Bash(find / -name \"dotnet\" -type f)"
+    ]
+  }
+}

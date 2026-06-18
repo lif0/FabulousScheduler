@@ -25,8 +25,9 @@
     - [Requirements](#requirements)
     - [Installation](#installation)
     - [QuickStart](#examples)
-- [Documentation](docs/Core.md)
+- Documentation
   - [General concepts](docs/General.md)
+  - [Core primitives](docs/Core.md)
   - [RecurringScheduler](docs/Recurring.md)
   - [QueueScheduler](docs/QueueBased.md)
 - [Benchmarks](#benchmarks) (future)
