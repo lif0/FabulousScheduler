@@ -5,7 +5,10 @@ using BenchmarkDotNet.Running;
 // ReSharper disable InconsistentNaming
 // ReSharper disable FieldCanBeMadeReadOnly.Local
 
-BenchmarkRunner.Run<CoverSyncAndAsyncMethodTask>();
+// Selects benchmarks via CLI, e.g.:
+//   dotnet run -c Release -- --filter *JobResult*
+//   dotnet run -c Release -- --list flat
+BenchmarkSwitcher.FromAssembly(System.Reflection.Assembly.GetExecutingAssembly()).Run(args);
 
 [SimpleJob(RuntimeMoniker.Net70)]
 [MemoryDiagnoser]
