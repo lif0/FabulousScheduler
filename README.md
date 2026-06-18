@@ -65,7 +65,7 @@ I have developed this library for cases where you need to launch a large count o
 ## 📚 Usage <a id="usage" />
 ### 📋 Requirements <a id="requirements" />
 
-- dotnet 6.0+
+- dotnet 8.0+
 
 ### 🛠️ Installation <a id="installation" />
 
