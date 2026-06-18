@@ -9,6 +9,9 @@ The benchmark project lives in [`src/Benchmark/Common`](../src/Benchmark/Common)
 - [JobResult&lt;TOk, TFail&gt;](#jobresult)
   - [Results](#jobresult-results)
   - [Takeaways](#jobresult-takeaways)
+- [Job dispatch](#dispatch)
+  - [Results](#dispatch-results)
+  - [Takeaways](#dispatch-takeaways)
 - [Scheduler throughput](#throughput) (future)
 
 ---
@@ -70,6 +73,52 @@ BenchmarkDotNet v0.13.12, Ubuntu 24.04.4 LTS (Noble Numbat)
   nothing. The success/fail branching is not a bottleneck.
 - This motivates the open items in the [roadmap](../README.md#features): turning `JobResult`
   into a `struct` (and the `Task` → `ValueTask` refactor) would remove the 40 B/op allocation.
+
+---
+
+## Job dispatch <a id="dispatch" />
+
+How much it costs to start one job. This suite
+([`JobDispatchBenchmark.cs`](../src/Benchmark/Common/JobDispatchBenchmark.cs)) runs a real
+`BaseRecurringJob` whose action is an already-completed task, so the numbers reflect the framework
+path, not payload work. The `*_PerJob_*` rows use `OperationsPerInvoke` so they report the **true
+per-job allocation** (the benchmark's own wrapper task is amortized away).
+
+In **v5.0.1** the schedulers dispatched a `Task` per job (`Task.Factory.StartNew(async …)`).
+In **v5.1.0** they use a fixed worker pool (N workers drain the queue), so the dispatch `Task` is
+allocated once per worker instead of once per job.
+
+### Results <a id="dispatch-results" />
+
+```
+BenchmarkDotNet v0.13.12, Ubuntu 24.04.4 LTS (Noble Numbat)
+.NET SDK 8.0.128
+  [Host]   : .NET 8.0.28 (8.0.2826.26413), Arm64 RyuJIT AdvSIMD
+  .NET 8.0 : .NET 8.0.28 (8.0.2826.26413), Arm64 RyuJIT AdvSIMD
+```
+
+| Method                               | Mean       | Allocated | Note                       |
+|--------------------------------------|-----------:|----------:|----------------------------|
+| ExecuteAsync_AsyncAction             |   163.7 ns |     144 B | ExecuteAsync alone¹        |
+| Dispatch_TaskRun_AsyncAction         | 1,056.9 ns |     488 B | naive `Task.Run` (worse)   |
+| Dispatch_StartNew_PerJob_AsyncAction |   445.1 ns |     216 B | **v5.0.1 per-job**         |
+| WorkerPool_PerJob_AsyncAction        |   187.5 ns |      72 B | **v5.1.0 per-job**         |
+
+¹ non-amortized, so it includes the benchmark's own +1 wrapper task (~72 B).
+
+**Per-job, v5.0.1 → v5.1.0: 216 B → 72 B (−67 %), ~445 ns → ~188 ns (−58 %).**
+
+> Numbers are machine-dependent (here: Arm64, .NET 8). Treat them as relative, not absolute.
+
+### Takeaways <a id="dispatch-takeaways" />
+
+- **The worker pool removes the per-job dispatch overhead** (`Task<Task>` + `Unwrap` + the
+  async state-machine box) — ~144 B/job — leaving only `ExecuteAsync`'s own `Task<JobResult>` (~72 B).
+- **Swapping the dispatch primitive does not help**: `Task.Run` instead of `StartNew` allocates *more*
+  (488 B vs 400 B) because of the closure capture. The fix has to be architectural.
+- **`Task` → `ValueTask` would not move the needle**: `ExecuteAsync`'s own task is only ~72 B, and on
+  the async path it suspends (a `ValueTask` still allocates the state-machine box). The per-job cost
+  lived in the dispatch, which is now gone.
 
 ---
 

@@ -22,6 +22,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\FabulousScheduler.Core\FabulousScheduler.Core.csproj" />
+      <ProjectReference Include="..\..\FabulousScheduler.Recurring\FabulousScheduler.Recurring.csproj" />
     </ItemGroup>
 
 </Project>

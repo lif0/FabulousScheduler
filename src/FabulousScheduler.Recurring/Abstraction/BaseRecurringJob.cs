@@ -97,17 +97,10 @@ public abstract class BaseRecurringJob : IRecurringJob
 
 		try
 		{
-			JobResult<JobOk, JobFail> res;
-			
-			if (IsAsyncAction)
-			{
-				res = await ActionJob();
-			}
-			else
-			{
-				res = ActionJob().Result; // because action is sync
-			}
-			
+			// ActionJob() completes synchronously for sync actions, so a single await is
+			// correct for both paths and avoids the sync-over-async ActionJob().Result.
+			JobResult<JobOk, JobFail> res = await ActionJob();
+
 			dt = DateTime.Now;
 
 			if (res.IsSuccess)
