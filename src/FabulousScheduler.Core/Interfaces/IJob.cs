@@ -3,17 +3,17 @@ namespace FabulousScheduler.Core.Interfaces;
 /// <summary> Instance a job </summary>
 public interface IJob : IDisposable, IAsyncDisposable
 {
-	/// <summary> Job's identity key </summary>
+	/// <summary> The job's unique identifier </summary>
 	public Guid ID { get; }
 	
-	/// <summary> Job's name </summary>
+	/// <summary> The job's name </summary>
 	public string Name { get; }
-	
-	/// <summary> Last time when a job was executed </summary>
-	/// <remarks> Null - the job haven't been ever run </remarks>
+
+	/// <summary> The last time the job was executed </summary>
+	/// <remarks> Null - if the job has never been run </remarks>
 	public DateTime? LastExecute { get; }
 	
-	/// <summary> Last time when the job was success executed </summary>
-	/// <remarks> Null - a job haven't been ever run </remarks>
+	/// <summary> The last time the job was executed successfully </summary>
+	/// <remarks> Null if the job has never been executed successfully </remarks>
 	public DateTime? LastSuccessExecute { get; }
 }

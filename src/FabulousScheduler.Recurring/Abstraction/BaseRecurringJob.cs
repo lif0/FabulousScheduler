@@ -143,7 +143,6 @@ public abstract class BaseRecurringJob : IRecurringJob
 		}
 	}
 
-
 	public void Dispose()
 	{
 		_disposed = true;

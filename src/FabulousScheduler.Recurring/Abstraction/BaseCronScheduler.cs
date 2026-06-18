@@ -7,10 +7,6 @@ namespace FabulousScheduler.Recurring.Abstraction;
 
 public abstract class BaseRecurringScheduler : IRecurringJobScheduler
 {
-#if DEBUGWITHCONSOLE
-	private readonly Guid _debugId = Guid.NewGuid();
-#endif
-	
 	// sync
 	private readonly object _jobsDictLocker = new();
 	private readonly object _mainLoopLocker = new();
@@ -106,10 +102,6 @@ public abstract class BaseRecurringScheduler : IRecurringJobScheduler
 				.ToArray();
 		}
 
-#if DEBUGWITHCONSOLE
-		Console.WriteLine($"[TryScheduleJobs {_debugId:N}] FoundJobs:{readyJobs.Length} AllJobs:{_registeredJob.Count}");
-#endif
-
 		if (readyJobs.Length == 0) return false;
 		
 		foreach (var job in readyJobs)
@@ -121,7 +113,7 @@ public abstract class BaseRecurringScheduler : IRecurringJobScheduler
 		return true;
 	} 
 
-	private async void ExecutableLoop()
+	private async Task ExecutableLoop()
 	{
 		while (!_cancellationTokenSource.Token.IsCancellationRequested)
 		{
@@ -129,28 +121,17 @@ public abstract class BaseRecurringScheduler : IRecurringJobScheduler
 			{
 				if (!TryScheduleJobs())
 				{
-#if DEBUGWITHCONSOLE
-					Console.WriteLine($"[ExecutableLoop {_debugId:N}] Start sleep on {this.Config.SleepAfterCheck.TotalMinutes}");
-#endif
 					// this is executed on a dedicated thread
 					Thread.Sleep(this.Config.SleepAfterCheck);
 					continue;
 				}
 			}
-#if DEBUGWITHCONSOLE
-			Console.WriteLine($"[ExecutableLoop {_debugId:N}] Start wait JobParallelLimiter");
-#endif
+
 			await _jobExecutorLimiter.WaitAsync(CancellationToken.None);
-#if DEBUGWITHCONSOLE
-			Console.WriteLine($"[ExecutableLoop {_debugId:N}] Finish wait JobParallelLimiter");
-#endif
 
 			if (_queue.TryDequeue(out IRecurringJob? job))
 			{
 				CreateTask(ref job);
-#if DEBUGWITHCONSOLE
-				Console.WriteLine($"[_queue.TryDequeue {_debugId:N}] Dequeued a job");
-#endif
 			}
 		}
 		// ReSharper disable once FunctionNeverReturns
@@ -167,9 +148,6 @@ public abstract class BaseRecurringScheduler : IRecurringJobScheduler
 				ArgumentNullException.ThrowIfNull(@job, nameof(@job));
 			}
 
-#if DEBUGWITHCONSOLE
-			Console.WriteLine($"[CreateTask {_debugId:N}] JobResultEventNull:{JobResultEvent is null}");
-#endif
 			var res = await @job.ExecuteAsync();
 			if (_inProgress.TryRemove(@job.ID, out var tup))
 			{
@@ -184,13 +162,7 @@ public abstract class BaseRecurringScheduler : IRecurringJobScheduler
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	private bool RegisterUnsafe(IRecurringJob job)
 	{
-#if DEBUGWITHCONSOLE
-		bool result = _registeredJob.TryAdd(job.ID, job);
-		Console.WriteLine($"[RegisterUnsafe {_debugId:N}] jobID:{job.ID} AllJobs:{_registeredJob.Count}");
-		return result;
-#else
 		return _registeredJob.TryAdd(job.ID, job);
-#endif
 	}
 	
 	#endregion

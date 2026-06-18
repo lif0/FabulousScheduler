@@ -25,8 +25,9 @@
     - [Requirements](#requirements)
     - [Installation](#installation)
     - [QuickStart](#examples)
-- [Documentation](docs/Core.md)
+- Documentation
   - [General concepts](docs/General.md)
+  - [Core primitives](docs/Core.md)
   - [RecurringScheduler](docs/Recurring.md)
   - [QueueScheduler](docs/QueueBased.md)
 - [Benchmarks](#benchmarks) (future)
@@ -48,8 +49,8 @@ I have developed this library for cases where you need to launch a large count o
 ## 🚀 Features <a id="features" />
 - [x] Implement default recurring scheduler
 - [x] Implement default queue scheduler
-- [ ] Docs for CustomRecurringJobManager
-- [ ] Docs for CustomQueueJobManager
+- [x] Docs for CustomRecurringJobManager
+- [x] Docs for CustomQueueJobManager
 - [ ] Benchmark for JobResult type
 - [x] Return job result via pub/sub callback event
 - [x] Cover queue scheduler unit tests
@@ -98,11 +99,14 @@ Every Job return the type <b>JobResult<<i>IJobOk</i>, <i>IJobFail</i>></b> if a 
     Console.WriteLine(msg);
 ```
 
-FabulousScheduler uses a builder pattern that allows you to conveniently create a recurring or queue-based jobs for executing.
+FabulousScheduler follows a simple lifecycle to create recurring or queue-based jobs for executing.
 <br>
-1. SetConfig()
-2. Register jobs
-3. RunScheduler()
+1. SetConfig() — optional, must be called **before** RunScheduler()
+2. RunScheduler()
+3. Register jobs — only **after** RunScheduler()
+
+> ⚠️ Registering a job before calling `RunScheduler()` throws `SchedulerNotRunnableException`,
+> and calling `SetConfig()` after `RunScheduler()` throws `SetConfigAfterRunSchedulingException`.
 
 ```csharp
 using FabulousScheduler.Recurring.Interfaces;
@@ -111,11 +115,14 @@ using FabulousScheduler.Core.Types;
 using FabulousScheduler.Recurring;
 
 
-var config = new Config(
+var config = new Configuration(
     maxParallelJobExecute: 5,
     sleepAfterCheck: TimeSpan.FromMilliseconds(100)
 );
 RecurringJobManager.SetConfig(config);
+
+// Start a job scheduler (must be done BEFORE registering jobs)
+RecurringJobManager.RunScheduler();
 
 // Register callback for job's result
 RecurringJobManager.JobResultEvent += (ref IRecurringJob job, ref JobResult<JobOk, JobFail> res) =>
@@ -135,13 +142,11 @@ RecurringJobManager.Register(
         int a = 10;
         int b = 100;
         int c = a + b;
+        _ = c;
     },
     sleepDuration: TimeSpan.FromSeconds(1),
     name: "ExampleJob"
 );
-
-// Start a job scheduler
-RecurringJobManager.RunScheduler();
 
 /*
  * The job will fall asleep for 1 second after success completion, then it will wake up and will be push the job pool

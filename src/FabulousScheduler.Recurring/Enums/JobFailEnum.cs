@@ -4,9 +4,9 @@ namespace FabulousScheduler.Recurring.Enums;
 public enum JobFailEnum
 {
 	/// <summary>
-	/// Job have incorrect start.
+	/// The job has an incorrect start
 	/// <example>
-	///		When a job begin execute with state not equal <see cref="JobStateEnum.Ready"/>
+	///		When a job begins execution with a state not equal to <see cref="JobStateEnum.Ready"/>
 	/// </example>
 	/// </summary>
 	IncorrectState,
