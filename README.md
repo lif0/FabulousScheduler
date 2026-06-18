@@ -30,8 +30,7 @@
   - [Core primitives](docs/Core.md)
   - [RecurringScheduler](docs/Recurring.md)
   - [QueueScheduler](docs/QueueBased.md)
-- [Benchmarks](#benchmarks) (future)
-    - [Performance](#performance) (future)
+- [Benchmarks](docs/Benchmarks.md)
 - [License](#LICENSE)
 
 
