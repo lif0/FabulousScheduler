@@ -51,10 +51,10 @@ I have developed this library for cases where you need to launch a large count o
 - [x] Implement default queue scheduler
 - [x] Docs for CustomRecurringJobManager
 - [x] Docs for CustomQueueJobManager
-- [ ] Benchmark for JobResult type
+- [x] Benchmark for JobResult type
 - [x] Return job result via pub/sub callback event
 - [x] Cover queue scheduler unit tests
-- [ ] Cover InMemoryQueue unit tests
+- [x] Cover InMemoryQueue unit tests
 - [ ] Implement PSQLQueue
 - [ ] Cover PSQLQueue unit tests 
 - [x] Cover recurring scheduler unit tests
