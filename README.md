@@ -1,8 +1,7 @@
 <div align="center">
 <img src="./assets/logo.png" width="70%" height="auto" > 
 <h2 align="center">✨High performance recurring & queue-based scheduler✨</h2>
-<h3 align="center">Please leave a ⭐ as motivation if you liked the lib 😄
-<br>🌪️Currently a WIP and in Active development.</h3>
+<h3 align="center">Please leave a ⭐ as motivation if you liked the lib 😄</h3>
 
 
 ![build](https://github.com/lif0/FabulousScheduler/actions/workflows/github-actions-build.yml/badge.svg?branch=main)
