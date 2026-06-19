@@ -251,10 +251,12 @@ public abstract class BaseRecurringScheduler : IRecurringJobScheduler
 	public void Dispose()
 	{
 		_cancellationTokenSource.Cancel();
-		_wake.Set();
-		_workChannel.Writer.Complete();
+
+		// let the producer and workers observe the cancellation and finish before freeing anything
+		try { _producerLoop?.Wait(); } catch { /* ignore shutdown errors */ }
+		try { if (_workers is { } workers) Task.WaitAll(workers); } catch { /* ignore shutdown errors */ }
+
 		_cancellationTokenSource.Dispose();
-		_producerLoop?.Dispose();
 		_wake.Dispose();
 		_workers = null;
 	}

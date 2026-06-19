@@ -19,7 +19,9 @@ The benchmark project is in [`src/Benchmark/Common`](../src/Benchmark/Common).
 - [Work queue (take)](#work-queue) (changed in v5.1.0)
   - [Results](#work-queue-results)
   - [Takeaways](#work-queue-takeaways)
-- [Scheduler throughput](#throughput) (future)
+- [Scheduler throughput](#throughput)
+  - [Results](#throughput-results)
+  - [Takeaways](#throughput-takeaways)
 
 ---
 
@@ -267,6 +269,44 @@ BenchmarkDotNet v0.13.12, Ubuntu 24.04.4 LTS (Noble Numbat)
 
 ---
 
-## Scheduler throughput <a id="throughput" /> (future)
+## Scheduler throughput <a id="throughput" />
 
-End-to-end throughput benchmarks for the recurring and queue schedulers are not done yet.
+Everything together: register/enqueue N jobs that each run once, start the scheduler, and wait for the
+last result. This uses the whole pipeline at once — the worker pool, the heap producer (recurring),
+and the `Channel` queue. Each job does no real work, so the number is the scheduler's own cost per job.
+Files: [`RecurringThroughputBenchmark.cs`](../src/Benchmark/Common/RecurringThroughputBenchmark.cs),
+[`QueueThroughputBenchmark.cs`](../src/Benchmark/Common/QueueThroughputBenchmark.cs).
+
+`OperationsPerInvoke = N` makes it per-job: Mean is time per job, Allocated is memory per job (result +
+payload + tasks). Throughput ≈ `1e9 / Mean(ns)` jobs per second.
+
+This is a "big" benchmark — it starts real threads and makes a lot of garbage — so it is noisier than
+the micro-benchmarks above. Read the throughput as a round number, not an exact one.
+
+### Results <a id="throughput-results" />
+
+```
+BenchmarkDotNet v0.13.12, Ubuntu 24.04.4 LTS (Noble Numbat)
+.NET SDK 8.0.128
+  [Host]   : .NET 8.0.28 (8.0.2826.26413), Arm64 RyuJIT AdvSIMD
+  .NET 8.0 : .NET 8.0.28 (8.0.2826.26413), Arm64 RyuJIT AdvSIMD
+```
+
+| Scheduler | Mean (per job) | Allocated (per job) | ≈ Throughput   |
+|-----------|---------------:|--------------------:|---------------:|
+| Recurring |        107 ns  |        224 B        | ~9.3M jobs/sec |
+| Queue     |        170 ns  |        279 B        | ~5.9M jobs/sec |
+
+> N = 100,000 jobs per run, workers = ProcessorCount. Numbers depend on the machine (here: Arm64,
+> .NET 8) and are noisy — relative, not exact.
+
+### Takeaways <a id="throughput-takeaways" />
+
+- With all the v5.1.0 changes, both schedulers do **millions of jobs per second** on one machine here
+  (recurring ~9M/s, queue ~6M/s), allocating ~220–280 B per job.
+- Most of that per-job memory is now the **result itself** — the `JobResult` object, its payload, and
+  the job's `Task` — not the scheduler. The scheduler overhead (dispatch + queue + scheduling) is small
+  now (see the sections above). That is why `JobResult` → `struct` is the next thing to look at if you
+  want to push memory lower.
+- The recurring scheduler is a bit faster per job here than the queue one, because its single producer
+  feeds the workers, while the queue has many workers reading one channel at the same time.

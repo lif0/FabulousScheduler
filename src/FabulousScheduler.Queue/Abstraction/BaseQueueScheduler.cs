@@ -75,6 +75,10 @@ public class BaseQueueScheduler : IQueueJobScheduler
     public void Dispose()
     {
         _cancellationTokenSource.Cancel();
+
+        // let the workers observe the cancellation and finish before freeing anything
+        try { if (_workers is { } workers) Task.WaitAll(workers); } catch { /* ignore shutdown errors */ }
+
         _cancellationTokenSource.Dispose();
         _workers = null;
     }
