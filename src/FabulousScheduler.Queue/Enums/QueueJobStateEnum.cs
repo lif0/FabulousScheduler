@@ -1,6 +1,5 @@
 namespace FabulousScheduler.Queue.Enums;
 
-[Flags]
 public enum QueueJobStateEnum
 {
 	/// <summary>

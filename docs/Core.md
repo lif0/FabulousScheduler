@@ -1,10 +1,10 @@
 # Core (`FabulousScheduler.Core`)
 
-The `FabulousScheduler.Core` package holds the shared primitives that both subsystems
-build on. It contains **no scheduling logic** — only the contracts (`IJob`,
-`IJobScheduler`, `IJobOk`, `IJobFail`) and the `JobResult<TOk, TFail>` type.
+`FabulousScheduler.Core` holds the pieces both subsystems share. There is no scheduling logic
+in here, only the contracts (`IJob`, `IJobScheduler`, `IJobOk`, `IJobFail`) and the
+`JobResult<TOk, TFail>` type.
 
-For the high-level picture see **[General concepts](General.md)**.
+If you want the big picture first, read [General concepts](General.md).
 
 ### 📖 Contents
 
@@ -17,29 +17,29 @@ For the high-level picture see **[General concepts](General.md)**.
 
 ## IJob <a id="ijob" />
 
-`FabulousScheduler.Core.Interfaces.IJob` is the identity every job shares. It extends
+`FabulousScheduler.Core.Interfaces.IJob` is the identity every job carries. It also implements
 `IDisposable` and `IAsyncDisposable`.
 
 | Member | Type | Meaning |
 |--------|------|---------|
-| `ID` | `Guid` | Unique identifier, generated when the job is created. |
-| `Name` | `string` | Human-readable name. Defaults to `"anonimouse"` when not supplied. |
-| `LastExecute` | `DateTime?` | Last time the job ran (any outcome). `null` if it has never run. |
-| `LastSuccessExecute` | `DateTime?` | Last time the job ran **successfully**. `null` if it has never succeeded. |
+| `ID` | `Guid` | Unique id, generated when the job is created. |
+| `Name` | `string` | A readable name. If you don't pass one, it defaults to `"anonymous"`. |
+| `LastExecute` | `DateTime?` | When the job last ran, success or not. `null` until the first run. |
+| `LastSuccessExecute` | `DateTime?` | When the job last ran successfully. `null` until the first success. |
 
-The two subsystem interfaces extend `IJob` and add their own members:
+Each subsystem has its own interface on top of `IJob`:
 
-- `IRecurringJob` — adds `Category`, `State`, `SleepDuration`, `TotalRun`, `TotalFail`,
+- `IRecurringJob` adds `Category`, `State`, `SleepDuration`, `TotalRun`, `TotalFail` and
   `ExecuteAsync()`. See [Recurring.md](Recurring.md).
-- `IQueueJob` — adds `State`, `TotalRun`, `Attempts`, `ExecuteAsync()`, `ResetState()`.
+- `IQueueJob` adds `State`, `TotalRun`, `Attempts`, `ExecuteAsync()` and `ResetState()`.
   See [QueueBased.md](QueueBased.md).
 
 ---
 
 ## IJobScheduler <a id="ijobscheduler" />
 
-`FabulousScheduler.Core.Interfaces.IJobScheduler` is the minimal scheduler contract; it
-extends `IDisposable`.
+`FabulousScheduler.Core.Interfaces.IJobScheduler` is the smallest scheduler contract. It
+implements `IDisposable`.
 
 ```csharp
 public interface IJobScheduler : IDisposable
@@ -48,16 +48,17 @@ public interface IJobScheduler : IDisposable
 }
 ```
 
-Both `IRecurringJobScheduler` and `IQueueJobScheduler` extend it and add a
-`JobResultEventHandler` delegate / `JobResultEvent` for result callbacks (with subsystem
--specific job and result types).
+`IRecurringJobScheduler` and `IQueueJobScheduler` both extend it and add a `JobResultEvent`
+(with a `JobResultEventHandler` delegate) that fires after every run, using the job and result
+types of their subsystem.
 
 ---
 
 ## IJobOk / IJobFail <a id="results" />
 
-The two markers carried by a result. Both expose only the job `ID`; concrete payloads
-(message, reason, exception) are added by the subsystem-specific implementations.
+These are the two markers a result can hold. Each one exposes the job `ID` and nothing else.
+The real payload (a message, a reason, the original exception) lives on the concrete types that
+each subsystem ships.
 
 ```csharp
 public interface IJobOk   { Guid ID { get; } }
@@ -66,28 +67,27 @@ public interface IJobFail { Guid ID { get; } }
 
 | Subsystem | Ok type | Fail type | Extra members on the fail type |
 |-----------|---------|-----------|--------------------------------|
-| Recurring | `Recurring.Result.JobOk` | `Recurring.Result.JobFail` (plain class) | `Reason` (`JobFailEnum`), `Message`, `Exception?` |
-| Queue | `Queue.Result.JobOk` | `Queue.Result.JobFail` (**`: System.Exception`**) | `Reason` (`QueueJobFailEnum`), `Exception?` |
+| Recurring | `Recurring.Result.JobOk` | `Recurring.Result.JobFail` | `Reason` (`JobFailEnum`), `Message`, `Exception?` |
+| Queue | `Queue.Result.JobOk` | `Queue.Result.JobFail` | `Reason` (`QueueJobFailEnum`), `Message`, `Exception?` |
 
-> ⚠️ Design asymmetry: the queue `JobFail` derives from `Exception`, the recurring one is
-> a plain class. Use them as result objects, not as things to `throw`.
+Both `JobFail` types are plain result objects. When a job fails, you read the reason, the
+message and (if there was one) the original exception off the object. You never throw it.
 
 ---
 
 ## JobResult&lt;TOk, TFail&gt; <a id="jobresult" />
 
-`FabulousScheduler.Core.Types.JobResult<TOk, TFail>`
-(`where TOk : IJobOk`, `where TFail : IJobFail`) is a small discriminated union. It holds
-**either** a success value **or** a failure value, never both, and never uses exceptions
-for control flow.
+`FabulousScheduler.Core.Types.JobResult<TOk, TFail>` (`where TOk : IJobOk`,
+`where TFail : IJobFail`) is a tiny either/or value. It carries a success value or a failure
+value, one of the two, and it does not use exceptions to signal which.
 
 ### Creating a result
 
-A result is created implicitly from either side — you rarely call a constructor:
+You rarely call a constructor. A `JobOk` or a `JobFail` converts into a result on its own:
 
 ```csharp
-JobResult<JobOk, JobFail> ok   = new JobOk(id);                  // implicit -> success
-JobResult<JobOk, JobFail> fail = new JobFail(reason, id, "msg"); // implicit -> failure
+JobResult<JobOk, JobFail> ok   = new JobOk(id);                  // becomes a success
+JobResult<JobOk, JobFail> fail = new JobFail(reason, id, "msg"); // becomes a failure
 ```
 
 ### Inspecting
@@ -96,20 +96,20 @@ JobResult<JobOk, JobFail> fail = new JobFail(reason, id, "msg"); // implicit -> 
 |--------|------|---------|
 | `IsSuccess` | `bool` | `true` when it holds a `TOk`. |
 | `IsFail` | `bool` | `true` when it holds a `TFail`. |
-| `JobID` | `Guid` | The job's `ID`, regardless of outcome. |
+| `JobID` | `Guid` | The job's `ID`, whatever the outcome. |
 | `GetFail()` | `TFail?` | The failure, or `null` on success. |
 
 ### Consuming
 
-| Method | Returns | Use it to… |
-|--------|---------|------------|
-| `Do(Action<TOk> success, Action<TFail> failure)` | `void` | run a side effect per branch |
-| `Match<TResult>(Func<TOk,TResult> success, Func<TFail,TResult> failure)` | `TResult` | map both branches to one value |
-| `Match<TResult,TFailResult>(Func<TOk?,TFail?,(TResult,TFailResult)> f)` | `(TResult, TFailResult)` | low-level tuple projection |
-| `MatchAsync<TResult>(Func<TOk,Task<TResult>>, Func<TFail,Task<TResult>>)` | `Task<TResult>` | async mapping |
+| Method | Returns | What it's for |
+|--------|---------|---------------|
+| `Do(Action<TOk> success, Action<TFail> failure)` | `void` | a side effect per branch |
+| `Match<TResult>(Func<TOk,TResult> success, Func<TFail,TResult> failure)` | `TResult` | turn both branches into one value |
+| `Match<TResult,TFailResult>(Func<TOk?,TFail?,(TResult,TFailResult)> f)` | `(TResult, TFailResult)` | a low-level tuple projection |
+| `MatchAsync<TResult>(Func<TOk,Task<TResult>>, Func<TFail,Task<TResult>>)` | `Task<TResult>` | the async version of `Match` |
 
 ```csharp
-// Side effect per branch
+// A side effect per branch
 result.Do(
     success: ok   => Console.WriteLine("{0} succeeded", ok.JobID),
     failure: fail => Console.WriteLine("{0} failed: {1}", fail.JobID, fail.Message)
@@ -127,3 +127,6 @@ int code = await result.MatchAsync(
     failure: async fail => { await Task.Yield(); return 1; }
 );
 ```
+
+One thing to watch: every `JobResult` is a class, so it allocates. With a lot of jobs per second
+that adds up. There are numbers for it in [Benchmarks](Benchmarks.md#jobresult).

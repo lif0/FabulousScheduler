@@ -1,6 +1,5 @@
 namespace FabulousScheduler.Recurring.Enums;
 
-[Flags]
 public enum JobFailEnum
 {
 	/// <summary>

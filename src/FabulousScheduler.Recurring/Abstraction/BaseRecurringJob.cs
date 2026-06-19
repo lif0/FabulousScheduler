@@ -97,17 +97,10 @@ public abstract class BaseRecurringJob : IRecurringJob
 
 		try
 		{
-			JobResult<JobOk, JobFail> res;
-			
-			if (IsAsyncAction)
-			{
-				res = await ActionJob();
-			}
-			else
-			{
-				res = ActionJob().Result; // because action is sync
-			}
-			
+			// ActionJob() completes synchronously for sync actions, so a single await is
+			// correct for both paths and avoids the sync-over-async ActionJob().Result.
+			JobResult<JobOk, JobFail> res = await ActionJob();
+
 			dt = DateTime.Now;
 
 			if (res.IsSuccess)
@@ -152,7 +145,7 @@ public abstract class BaseRecurringJob : IRecurringJob
 		}
 	}
 
-	public ValueTask DisposeAsync() // TODO KGG :> выглядит тупо, убери если нужно
+	public ValueTask DisposeAsync()
 	{
 		Dispose();
 		return ValueTask.CompletedTask;
@@ -164,17 +157,16 @@ public abstract class BaseRecurringJob : IRecurringJob
 
 	private void UpdateState()
 	{
-		if(_state is not JobStateEnum.Sleeping) return;
-		if(SleepDuration == TimeSpan.MaxValue) return;
+		if (SleepDuration == TimeSpan.MaxValue) return;
 
 		lock (_lock)
 		{
-			if (SleepDuration == TimeSpan.Zero)
-			{
-				_state = JobStateEnum.Ready;
-			}
+			// read _state under the lock to avoid a race with the writers
+			if (_state is not JobStateEnum.Sleeping) return;
 
-			if (LastSuccessExecute == null || DateTime.Now.Subtract(LastSuccessExecute.Value.AddMinutes(SleepDuration.TotalMinutes)).Ticks > 0)
+			if (SleepDuration == TimeSpan.Zero
+			    || LastSuccessExecute == null
+			    || DateTime.Now.Subtract(LastSuccessExecute.Value.AddMinutes(SleepDuration.TotalMinutes)).Ticks > 0)
 			{
 				_state = JobStateEnum.Ready;
 			}

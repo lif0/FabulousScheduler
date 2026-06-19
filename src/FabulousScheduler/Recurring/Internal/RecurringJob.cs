@@ -7,7 +7,7 @@ namespace FabulousScheduler.Recurring.Internal;
 
 internal sealed class RecurringJob : BaseRecurringJob
 {
-    private const string DefaultJobName = "anonimouse";
+    private const string DefaultJobName = "anonymous";
     private const string DefaultJobCategory = "internal";
     
     private readonly Func<Task>? _actionAsync;
