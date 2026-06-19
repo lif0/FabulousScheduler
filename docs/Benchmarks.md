@@ -1,18 +1,19 @@
 # Benchmarks
 
-Micro-benchmarks for FabulousScheduler, powered by [BenchmarkDotNet](https://benchmarkdotnet.org/).
-The benchmark project lives in [`src/Benchmark/Common`](../src/Benchmark/Common).
+Small benchmarks for FabulousScheduler, made with [BenchmarkDotNet](https://benchmarkdotnet.org/).
+The benchmark project is in [`src/Benchmark/Common`](../src/Benchmark/Common).
 
 ### 📖 Contents
 
 - [How to run](#how-to-run)
+- [What got better by version](#by-version)
 - [JobResult&lt;TOk, TFail&gt;](#jobresult)
   - [Results](#jobresult-results)
   - [Takeaways](#jobresult-takeaways)
-- [Job dispatch](#dispatch)
+- [Job dispatch](#dispatch) (changed in v5.1.0)
   - [Results](#dispatch-results)
   - [Takeaways](#dispatch-takeaways)
-- [Picking the next job](#next-job)
+- [Picking the next job](#next-job) (changed in v5.1.0)
   - [Results](#next-job-results)
   - [Takeaways](#next-job-takeaways)
 - [Scheduler throughput](#throughput) (future)
@@ -21,7 +22,7 @@ The benchmark project lives in [`src/Benchmark/Common`](../src/Benchmark/Common)
 
 ## How to run <a id="how-to-run" />
 
-Benchmarks must be run in **Release**. Use the CLI filter to pick a suite:
+Benchmarks must run in **Release**. Use the CLI filter to pick a suite:
 
 ```shell
 # all benchmarks
@@ -36,14 +37,57 @@ dotnet run -c Release --project src/Benchmark/Common -- --list flat
 
 ---
 
+## What got better by version <a id="by-version" />
+
+A short list of what changed, so you can see where things got faster.
+Numbers come from the suites below. They depend on the machine (here: Arm64, .NET 8), so read them
+as "how much better", not as exact values.
+
+### v5.1.0
+
+**1. Starting a job is cheaper.**
+Before, the scheduler made a new `Task` for every single job. Now it uses a small pool of workers,
+and each worker takes jobs one by one. So a `Task` is made once per worker, not once per job.
+
+| Per job | v5.0.1 | v5.1.0 | Better by |
+|---------|-------:|-------:|----------:|
+| Memory  |  216 B |   72 B |   −67 %   |
+| Time    | ~445 ns| ~188 ns|   −58 %   |
+
+Details: [Job dispatch](#dispatch).
+
+**2. Finding the next job to run is much cheaper.**
+Before, on every tick the recurring scheduler looked at **all** jobs to find the ready ones.
+Now it keeps jobs in a min-heap (sorted by their next run time), so the next job is just the top
+of the heap.
+
+| Find next job | v5.0.1 (look at all) | v5.1.0 (heap) |
+|---------------|---------------------:|--------------:|
+| 1 000 jobs    |              ~69 µs  |       ~41 ns  |
+| 50 000 jobs   |            ~3.65 ms  |       ~62 ns  |
+
+The scheduler now also **sleeps until the next job is due**, instead of waking up again and again.
+So when it is idle, it does not waste CPU.
+
+Details: [Picking the next job](#next-job).
+
+**3. Small clean-up.**
+`ExecuteAsync` no longer blocks on `ActionJob().Result`; it uses `await ActionJob()`.
+Same speed, but safer and simpler.
+
+### v5.0.1
+
+First version we measured. It is the "before" baseline for the numbers above.
+
+---
+
 ## JobResult&lt;TOk, TFail&gt; <a id="jobresult" />
 
-[`JobResult<TOk, TFail>`](Core.md#jobresult) is the value every job returns. It is declared
-as a `class`, so each result is a heap allocation. This suite
-([`JobResultBenchmark.cs`](../src/Benchmark/Common/JobResultBenchmark.cs)) measures both that
-allocation and the cost of the success/fail dispatch (`Do`, `Match`, `JobID`). The success/fail
-payloads and the delegates are pre-created in `[GlobalSetup]`, so the numbers reflect
-`JobResult` itself, not the payloads.
+[`JobResult<TOk, TFail>`](Core.md#jobresult) is the value every job returns. It is a `class`, so
+every result is a new object on the heap. This suite
+([`JobResultBenchmark.cs`](../src/Benchmark/Common/JobResultBenchmark.cs)) measures that memory and
+the cost of reading the result (`Do`, `Match`, `JobID`). The success/fail values and the delegates
+are made once in `[GlobalSetup]`, so the numbers show `JobResult` itself, not the work inside.
 
 ### Results <a id="jobresult-results" />
 
@@ -65,31 +109,29 @@ BenchmarkDotNet v0.13.12, Ubuntu 24.04.4 LTS (Noble Numbat)
 | JobID_Success  | 0.4113 ns | 0.0037 ns | 0.0031 ns |  0.10 |      - |         - |        0.00 |
 | JobID_Fail     | 0.3608 ns | 0.0067 ns | 0.0063 ns |  0.08 |      - |         - |        0.00 |
 
-> Numbers are machine-dependent (here: Arm64, .NET 8). Treat them as relative, not absolute.
+> Numbers depend on the machine (here: Arm64, .NET 8). Read them as relative, not exact.
 
 ### Takeaways <a id="jobresult-takeaways" />
 
-- **Creating a result costs ~40 B of managed heap per job** — because `JobResult<TOk, TFail>`
-  is a reference type. At high throughput (tens of thousands of jobs/sec) this is the dominant
-  GC pressure of the result path.
-- **Dispatch is essentially free**: `Do`, `Match<T>` and `JobID` are sub-nanosecond and allocate
-  nothing. The success/fail branching is not a bottleneck.
-- This motivates the open items in the [roadmap](../README.md#features): turning `JobResult`
-  into a `struct` (and the `Task` → `ValueTask` refactor) would remove the 40 B/op allocation.
+- **Every result uses ~40 B of memory**, because `JobResult<TOk, TFail>` is a class. With many jobs
+  per second, this is the main memory cost of the result path.
+- **Reading the result is almost free**: `Do`, `Match<T>` and `JobID` take less than a nanosecond
+  and use no memory. The success/fail check is not a problem.
+- Making `JobResult` a `struct` (see the [roadmap](../README.md#features)) would remove this ~40 B.
 
 ---
 
 ## Job dispatch <a id="dispatch" />
 
-How much it costs to start one job. This suite
-([`JobDispatchBenchmark.cs`](../src/Benchmark/Common/JobDispatchBenchmark.cs)) runs a real
-`BaseRecurringJob` whose action is an already-completed task, so the numbers reflect the framework
-path, not payload work. The `*_PerJob_*` rows use `OperationsPerInvoke` so they report the **true
-per-job allocation** (the benchmark's own wrapper task is amortized away).
+How much it costs to **start** one job. The job here does almost nothing (its action is already
+finished), so this suite
+([`JobDispatchBenchmark.cs`](../src/Benchmark/Common/JobDispatchBenchmark.cs)) measures the
+scheduler, not the real work. The `*_PerJob_*` rows divide the cost over many jobs, so they show the
+true cost of one job.
 
-In **v5.0.1** the schedulers dispatched a `Task` per job (`Task.Factory.StartNew(async …)`).
-In **v5.1.0** they use a fixed worker pool (N workers drain the queue), so the dispatch `Task` is
-allocated once per worker instead of once per job.
+- **v5.0.1** made a `Task` for every job (`Task.Factory.StartNew(async …)`).
+- **v5.1.0** uses a fixed worker pool (a few workers take jobs from the queue), so the `Task` is made
+  once per worker, not once per job.
 
 ### Results <a id="dispatch-results" />
 
@@ -104,35 +146,38 @@ BenchmarkDotNet v0.13.12, Ubuntu 24.04.4 LTS (Noble Numbat)
 |--------------------------------------|-----------:|----------:|----------------------------|
 | ExecuteAsync_AsyncAction             |   163.7 ns |     144 B | ExecuteAsync alone¹        |
 | Dispatch_TaskRun_AsyncAction         | 1,056.9 ns |     488 B | naive `Task.Run` (worse)   |
-| Dispatch_StartNew_PerJob_AsyncAction |   445.1 ns |     216 B | **v5.0.1 per-job**         |
-| WorkerPool_PerJob_AsyncAction        |   187.5 ns |      72 B | **v5.1.0 per-job**         |
+| Dispatch_StartNew_PerJob_AsyncAction |   445.1 ns |     216 B | **v5.0.1 per job**         |
+| WorkerPool_PerJob_AsyncAction        |   187.5 ns |      72 B | **v5.1.0 per job**         |
 
-¹ non-amortized, so it includes the benchmark's own +1 wrapper task (~72 B).
+¹ this row also counts one extra `Task` that the test itself creates (~72 B).
 
-**Per-job, v5.0.1 → v5.1.0: 216 B → 72 B (−67 %), ~445 ns → ~188 ns (−58 %).**
+**Per job, v5.0.1 → v5.1.0: 216 B → 72 B (−67 %), ~445 ns → ~188 ns (−58 %).**
 
-> Numbers are machine-dependent (here: Arm64, .NET 8). Treat them as relative, not absolute.
+> Numbers depend on the machine (here: Arm64, .NET 8). Read them as relative, not exact.
 
 ### Takeaways <a id="dispatch-takeaways" />
 
-- **The worker pool removes the per-job dispatch overhead** (`Task<Task>` + `Unwrap` + the
-  async state-machine box) — ~144 B/job — leaving only `ExecuteAsync`'s own `Task<JobResult>` (~72 B).
-- **Swapping the dispatch primitive does not help**: `Task.Run` instead of `StartNew` allocates *more*
-  (488 B vs 400 B) because of the closure capture. The fix has to be architectural.
-- **`Task` → `ValueTask` would not move the needle**: `ExecuteAsync`'s own task is only ~72 B, and on
-  the async path it suspends (a `ValueTask` still allocates the state-machine box). The per-job cost
-  lived in the dispatch, which is now gone.
+- **The worker pool removes the extra Tasks made for every job** (~144 B per job). Only the `Task`
+  inside `ExecuteAsync` is left (~72 B).
+- **Just changing `StartNew` to `Task.Run` does not help** — it even uses more memory (488 B), because
+  it captures the job in a closure. So the design had to change, not only the call.
+- **`Task` → `ValueTask` would not help much here.** The job's own `Task` is only ~72 B, and when the
+  job really runs async it still needs memory for the async state. The big cost was the dispatch, and
+  that is gone now.
 
 ---
 
 ## Picking the next job <a id="next-job" />
 
-How the recurring producer answers "which job runs next?" among N registered jobs
-([`SchedulerScanBenchmark.cs`](../src/Benchmark/Common/SchedulerScanBenchmark.cs)).
-Up to **v5.0.1** it scanned every registered job each poll
-(`Where(State == Ready).OrderBy(LastExecute)`) — O(n). In **v5.1.0** the producer keeps a
-min-heap keyed by next-run time, so the next job is the heap root — O(log n) to pop and re-insert.
-Both rows run over N sleeping jobs (the common idle case), so `Scan` finds nothing yet still pays O(n).
+When the recurring scheduler wakes up, it must find which job should run next.
+This suite ([`SchedulerScanBenchmark.cs`](../src/Benchmark/Common/SchedulerScanBenchmark.cs))
+compares the two ways over N jobs:
+
+- **`Scan`** (up to v5.0.1): look at **every** job and pick the ready ones — O(n).
+- **`Heap_Next`** (v5.1.0): keep jobs in a min-heap by next run time and take the top — O(log n).
+
+In the test all N jobs are sleeping (the normal idle case), so `Scan` finds nothing but still has to
+look at all of them.
 
 ### Results <a id="next-job-results" />
 
@@ -152,18 +197,18 @@ BenchmarkDotNet v0.13.12, Ubuntu 24.04.4 LTS (Noble Numbat)
 | Scan      | 50000 | 3,653,915 ns  |     259 B |
 | Heap_Next | 50000 |        62 ns  |       0 B |
 
-> Numbers are machine-dependent (here: Arm64, .NET 8). Treat them as relative, not absolute.
+> Numbers depend on the machine (here: Arm64, .NET 8). Read them as relative, not exact.
 
 ### Takeaways <a id="next-job-takeaways" />
 
-- **`Scan` is O(n)**: ~5× from 1k→5k and ~10× from 5k→50k. At 50k jobs one scheduling decision is
-  **~3.65 ms**, and the old producer paid it every `SleepAfterCheck` even when nothing was ready.
-- **`Heap_Next` is O(log n)** and allocation-free: ~41 → 62 ns across a 50× range of N.
-- The new producer also **sleeps until the next job is due** instead of polling, so an idle scheduler
-  with many jobs no longer burns CPU re-scanning.
+- **`Scan` grows with the number of jobs** (O(n)): about 5× from 1k to 5k, and about 10× from 5k to
+  50k. At 50 000 jobs one check takes ~3.65 ms — and the old scheduler did this on every tick, even
+  when no job was ready.
+- **`Heap_Next` stays almost flat** (O(log n)) and uses no memory: ~41 ns at 1k, ~62 ns at 50k.
+- The new scheduler also **sleeps until the next job is due**, so when it is idle it does not waste CPU.
 
 ---
 
 ## Scheduler throughput <a id="throughput" /> (future)
 
-End-to-end throughput benchmarks for the recurring and queue schedulers are not implemented yet.
+End-to-end throughput benchmarks for the recurring and queue schedulers are not done yet.
