@@ -28,15 +28,13 @@ public interface IRecurringJob: IJob
 	/// <summary> Total fail </summary>
 	public ulong TotalFail { get; }
 
-	/// <summary>
-	/// TODO KGG :> add description
-	/// </summary>
-	/// <returns></returns>
+	/// <summary> Runs the job once and returns its result (<see cref="JobOk"/> or <see cref="JobFail"/>). </summary>
+	/// <remarks> Never throws: a failure (including an exception thrown inside the job) is returned as <see cref="JobFail"/>. </remarks>
 	public Task<JobResult<JobOk, JobFail>> ExecuteAsync();
 
 	/// <summary> Reset state </summary>
 	/// <remarks>
-	/// Set <see cref="JobStateEnumJobStateEnuming"/> for <see cref="State"/> 
+	/// Moves the job to <see cref="JobStateEnum.Waiting"/> so the scheduler can pick it up.
 	/// </remarks>
 	internal void ResetState();
 }

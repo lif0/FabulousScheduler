@@ -108,7 +108,7 @@ public abstract class BaseQueueJob : IQueueJob
 		}
 	}
 
-	public void Dispose() // TODO KGG :> потенциальное место для бага
+	public void Dispose()
 	{
 		_disposed = true;
 	}

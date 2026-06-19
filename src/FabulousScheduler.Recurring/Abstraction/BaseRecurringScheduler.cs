@@ -93,6 +93,19 @@ public abstract class BaseRecurringScheduler : IRecurringJobScheduler
 		return success;
 	}
 
+	/// <summary>
+	/// Stop scheduling a job. Any run already in flight finishes; the job is not scheduled again.
+	/// </summary>
+	/// <param name="id">job id</param>
+	/// <returns>true - if the job was registered, otherwise false</returns>
+	protected bool Unregister(Guid id)
+	{
+		lock (_jobsDictLocker)
+		{
+			return _registeredJob.Remove(id);
+		}
+	}
+
 	#region Public
 	public int CurrentRunnableJobCount() => Volatile.Read(ref _inProgressCount);
 
@@ -225,13 +238,19 @@ public abstract class BaseRecurringScheduler : IRecurringJobScheduler
 				try
 				{
 					var res = await job.ExecuteAsync().ConfigureAwait(false);
-					JobResultEvent?.Invoke(ref job, ref res);
+					try
+					{
+						JobResultEvent?.Invoke(ref job, ref res);
+					}
+					catch
+					{
+						// a user result handler threw — swallow it so it can't kill the worker
+					}
 				}
 				finally
 				{
 					Interlocked.Decrement(ref _inProgressCount);
-					DateTime? next = NextRunTime(job);
-					if (next.HasValue) ScheduleAt(job, next.Value);
+					OnJobFinished(job);
 				}
 			}
 		}
@@ -239,6 +258,25 @@ public abstract class BaseRecurringScheduler : IRecurringJobScheduler
 		{
 			// scheduler is shutting down
 		}
+	}
+
+	/// <summary>
+	/// After a run: re-schedule the job for its next run, or drop it from the registry if it is
+	/// one-shot (<see cref="TimeSpan.MaxValue"/>) or was unregistered. Keeps the registry from
+	/// growing without bound.
+	/// </summary>
+	private void OnJobFinished(IRecurringJob job)
+	{
+		DateTime? next = NextRunTime(job);
+		lock (_jobsDictLocker)
+		{
+			if (!next.HasValue || !_registeredJob.ContainsKey(job.ID))
+			{
+				_registeredJob.Remove(job.ID);
+				return;
+			}
+		}
+		ScheduleAt(job, next.Value);
 	}
 
 	private bool RegisterUnsafe(IRecurringJob job)

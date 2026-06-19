@@ -63,7 +63,14 @@ public class BaseQueueScheduler : IQueueJobScheduler
             {
                 IQueueJob job = await Queue.NextAsync(token).ConfigureAwait(false);
                 var res = await job.ExecuteAsync().ConfigureAwait(false);
-                JobResultEvent?.Invoke(ref job, ref res);
+                try
+                {
+                    JobResultEvent?.Invoke(ref job, ref res);
+                }
+                catch
+                {
+                    // a user result handler threw — swallow it so it can't kill the worker
+                }
             }
         }
         catch (OperationCanceledException)

@@ -3,7 +3,6 @@ namespace FabulousScheduler.Queue.Enums;
 /// <summary>
 /// Queue job fail reason
 /// </summary>
-[Flags]
 public enum QueueJobFailEnum
 {
 	/// <summary>
