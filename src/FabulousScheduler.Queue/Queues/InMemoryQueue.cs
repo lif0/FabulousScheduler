@@ -1,3 +1,4 @@
+using System.Threading.Channels;
 using FabulousScheduler.Queue.Interfaces;
 
 namespace FabulousScheduler.Queue.Queues;
@@ -5,73 +6,36 @@ namespace FabulousScheduler.Queue.Queues;
 public sealed class InMemoryQueue: IQueue
 {
 	#region Private
-	
-	private readonly object _lock;
-	private readonly Queue<IQueueJob> _queue;
-	private readonly Queue<TaskCompletionSource<IQueueJob>> _rQueue;
-	
+
+	private readonly Channel<IQueueJob> _channel;
+
 	#endregion
 
-	// ReSharper disable once InconsistentlySynchronizedField
-	public int Count => _queue.Count;
+	/// <summary>Number of buffered jobs (waiting consumers are not counted).</summary>
+	public int Count => _channel.Reader.Count;
 
 	public InMemoryQueue(int? capacity = null)
 	{
-		_lock = new object();
-		_queue = new ();
-
-		_rQueue = capacity is not null ? 
-			new Queue<TaskCompletionSource<IQueueJob>>(capacity.Value) :
-			new Queue<TaskCompletionSource<IQueueJob>>();
-	}
-
-	public void Enqueue(IQueueJob job)
-	{
-		lock (_lock)
+		// Unbounded: Enqueue never blocks or fails. `capacity` is kept for source compatibility
+		// and is only a hint, not a hard limit.
+		_ = capacity;
+		_channel = Channel.CreateUnbounded<IQueueJob>(new UnboundedChannelOptions
 		{
-			if (_rQueue.Count == 0)
-			{
-				_queue.Enqueue(job);
-			}
-			else
-			{
-				var callTask = _rQueue.Dequeue();
-				callTask.SetResult(job);
-			}
-		}
+			SingleWriter = false, // Enqueue can be called concurrently
+			SingleReader = false  // many consumers, and >1 read may be pending at once
+		});
 	}
-	
+
+	public void Enqueue(IQueueJob job) => _channel.Writer.TryWrite(job);
+
 	public void Enqueue(IEnumerable<IQueueJob> jobs)
 	{
-		lock (_lock)
+		foreach (var job in jobs)
 		{
-			var take = _rQueue.Count;
-
-			foreach (var j in jobs.Take(take))
-			{
-				var callTask = _rQueue.Dequeue();
-				callTask.SetResult(j);
-			}
-
-			foreach (var j in jobs.Skip(take))
-			{
-				_queue.Enqueue(j);
-			}
+			_channel.Writer.TryWrite(job);
 		}
 	}
 
-	public Task<IQueueJob> NextAsync()
-	{
-		lock (_lock)
-		{
-			if (_queue.Count == 0)
-			{
-				var tcs = new TaskCompletionSource<IQueueJob>();
-				_rQueue.Enqueue(tcs);
-				return tcs.Task;
-			}
-			
-			return Task.FromResult(_queue.Dequeue());
-		}
-	}
+	public ValueTask<IQueueJob> NextAsync(CancellationToken cancellationToken = default)
+		=> _channel.Reader.ReadAsync(cancellationToken);
 }

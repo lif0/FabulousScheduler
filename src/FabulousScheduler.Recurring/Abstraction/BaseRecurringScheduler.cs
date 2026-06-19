@@ -1,6 +1,7 @@
 using FabulousScheduler.Recurring.Interfaces;
 using FabulousScheduler.Core.Interfaces;
 using System.Collections.Concurrent;
+using System.Threading.Channels;
 
 namespace FabulousScheduler.Recurring.Abstraction;
 
@@ -19,8 +20,7 @@ public abstract class BaseRecurringScheduler : IRecurringJobScheduler
 	private readonly PriorityQueue<IRecurringJob, DateTime> _schedule;              // producer-owned
 	private readonly ConcurrentQueue<(IRecurringJob job, DateTime when)> _incoming; // feeds the schedule
 	private readonly ManualResetEventSlim _wake;                                    // wakes the producer
-	private readonly ConcurrentQueue<IRecurringJob> _queue;                         // ready work for the pool
-	private readonly SemaphoreSlim _queueSignal;                                    // counts ready work
+	private readonly Channel<IRecurringJob> _workChannel;                           // ready work for the pool
 	private readonly CancellationTokenSource _cancellationTokenSource;
 	private readonly Dictionary<Guid, IRecurringJob> _registeredJob;
 
@@ -38,8 +38,11 @@ public abstract class BaseRecurringScheduler : IRecurringJobScheduler
 		_schedule = new PriorityQueue<IRecurringJob, DateTime>();
 		_incoming = new ConcurrentQueue<(IRecurringJob, DateTime)>();
 		_wake = new ManualResetEventSlim(false);
-		_queue = new ConcurrentQueue<IRecurringJob>();
-		_queueSignal = new SemaphoreSlim(0);
+		_workChannel = Channel.CreateUnbounded<IRecurringJob>(new UnboundedChannelOptions
+		{
+			SingleWriter = true,  // only the producer writes ready jobs
+			SingleReader = false  // the worker pool reads
+		});
 		_cancellationTokenSource = new CancellationTokenSource();
 	}
 
@@ -195,8 +198,7 @@ public abstract class BaseRecurringScheduler : IRecurringJobScheduler
 		if (job.State == State.Ready)
 		{
 			job.ResetState();
-			_queue.Enqueue(job);
-			_queueSignal.Release();
+			_workChannel.Writer.TryWrite(job);
 		}
 		else
 		{
@@ -217,14 +219,8 @@ public abstract class BaseRecurringScheduler : IRecurringJobScheduler
 		{
 			while (!token.IsCancellationRequested)
 			{
-				await _queueSignal.WaitAsync(token).ConfigureAwait(false);
+				IRecurringJob job = await _workChannel.Reader.ReadAsync(token).ConfigureAwait(false);
 
-				if (!_queue.TryDequeue(out IRecurringJob? dequeued) || dequeued is null)
-				{
-					continue;
-				}
-
-				IRecurringJob job = dequeued;
 				Interlocked.Increment(ref _inProgressCount);
 				try
 				{
@@ -256,9 +252,9 @@ public abstract class BaseRecurringScheduler : IRecurringJobScheduler
 	{
 		_cancellationTokenSource.Cancel();
 		_wake.Set();
+		_workChannel.Writer.Complete();
 		_cancellationTokenSource.Dispose();
 		_producerLoop?.Dispose();
-		_queueSignal.Dispose();
 		_wake.Dispose();
 		_workers = null;
 	}

@@ -57,11 +57,18 @@ public class BaseQueueScheduler : IQueueJobScheduler
     private async Task WorkerLoop()
     {
         var token = _cancellationTokenSource.Token;
-        while (!token.IsCancellationRequested)
+        try
         {
-            IQueueJob job = await Queue.NextAsync().ConfigureAwait(false);
-            var res = await job.ExecuteAsync().ConfigureAwait(false);
-            JobResultEvent?.Invoke(ref job, ref res);
+            while (!token.IsCancellationRequested)
+            {
+                IQueueJob job = await Queue.NextAsync(token).ConfigureAwait(false);
+                var res = await job.ExecuteAsync().ConfigureAwait(false);
+                JobResultEvent?.Invoke(ref job, ref res);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // scheduler is shutting down
         }
     }
 

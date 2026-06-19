@@ -11,8 +11,9 @@ public interface IQueue
 	public void Enqueue(IQueueJob job);
 
 	/// <summary>
-	/// Take job from queue or wait while a the job will be pushed
+	/// Take a job from the queue, or wait until one is pushed.
 	/// </summary>
-	/// <returns></returns>
-	public Task<IQueueJob> NextAsync();
+	/// <param name="cancellationToken">Cancels the wait (e.g. on scheduler shutdown).</param>
+	/// <returns>The next job.</returns>
+	public ValueTask<IQueueJob> NextAsync(CancellationToken cancellationToken = default);
 }

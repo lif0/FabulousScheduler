@@ -16,6 +16,9 @@ The benchmark project is in [`src/Benchmark/Common`](../src/Benchmark/Common).
 - [Picking the next job](#next-job) (changed in v5.1.0)
   - [Results](#next-job-results)
   - [Takeaways](#next-job-takeaways)
+- [Work queue (take)](#work-queue) (changed in v5.1.0)
+  - [Results](#work-queue-results)
+  - [Takeaways](#work-queue-takeaways)
 - [Scheduler throughput](#throughput) (future)
 
 ---
@@ -71,7 +74,21 @@ So when it is idle, it does not waste CPU.
 
 Details: [Picking the next job](#next-job).
 
-**3. Small clean-up.**
+**3. Taking a job from the queue is cheaper.**
+Both work queues now use a `Channel<T>`. When a job is already waiting, taking it returns a
+`ValueTask` that is already done, so it does not create a new object.
+
+| Take one job (job ready) | v5.0.1 | v5.1.0 |
+|--------------------------|-------:|-------:|
+| Memory                   |   72 B |    0 B |
+| Time                     | ~32 ns | ~26 ns |
+
+Note: `IQueue.NextAsync()` changed — it now returns `ValueTask<IQueueJob>` and takes a
+`CancellationToken`. This is a **breaking change** if you wrote your own `IQueue`.
+
+Details: [Work queue (take)](#work-queue).
+
+**4. Small clean-up.**
 `ExecuteAsync` no longer blocks on `ActionJob().Result`; it uses `await ActionJob()`.
 Same speed, but safer and simpler.
 
@@ -206,6 +223,47 @@ BenchmarkDotNet v0.13.12, Ubuntu 24.04.4 LTS (Noble Numbat)
   when no job was ready.
 - **`Heap_Next` stays almost flat** (O(log n)) and uses no memory: ~41 ns at 1k, ~62 ns at 50k.
 - The new scheduler also **sleeps until the next job is due**, so when it is idle it does not waste CPU.
+
+---
+
+## Work queue (take) <a id="work-queue" />
+
+How much it costs to take one job from the work queue when a job is already there (the normal case
+under load). This suite ([`QueueHandoffBenchmark.cs`](../src/Benchmark/Common/QueueHandoffBenchmark.cs))
+does one "enqueue + take" each time.
+
+- **v5.0.1**: a lock + a `Queue` + a `TaskCompletionSource`. A take returned a `Task`, which is a new
+  object every time.
+- **v5.1.0**: a `Channel<T>`. A take returns a `ValueTask`. When a job is ready, that `ValueTask` is
+  already done, so it makes no object.
+
+An `object` is used in place of a job, so we measure the queue, not the job.
+
+### Results <a id="work-queue-results" />
+
+```
+BenchmarkDotNet v0.13.12, Ubuntu 24.04.4 LTS (Noble Numbat)
+.NET SDK 8.0.128
+  [Host]   : .NET 8.0.28 (8.0.2826.26413), Arm64 RyuJIT AdvSIMD
+  .NET 8.0 : .NET 8.0.28 (8.0.2826.26413), Arm64 RyuJIT AdvSIMD
+```
+
+| Method             | Mean     | Allocated | Note          |
+|--------------------|---------:|----------:|---------------|
+| OldStyle_Lock_Task | 32.24 ns |      72 B | v5.0.1        |
+| Channel_ValueTask  | 25.54 ns |       0 B | **v5.1.0**    |
+
+> Numbers depend on the machine (here: Arm64, .NET 8). Read them as relative, not exact.
+
+### Takeaways <a id="work-queue-takeaways" />
+
+- **Taking a ready job makes no memory now** (72 B → 0 B) and is a bit faster (~32 ns → ~26 ns),
+  because a ready `Channel` read is an already-done `ValueTask`.
+- The `Channel` also gives **cancellation for free**: on shutdown a waiting take stops right away,
+  instead of hanging.
+- One code change: both queues use the same tool now (`Channel<T>`) instead of two different ones
+  (`lock` + `TaskCompletionSource` for the queue, and `ConcurrentQueue` + `SemaphoreSlim` inside the
+  recurring scheduler).
 
 ---
 
