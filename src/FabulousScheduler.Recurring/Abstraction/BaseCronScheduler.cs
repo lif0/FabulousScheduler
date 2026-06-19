@@ -10,12 +10,17 @@ public abstract class BaseRecurringScheduler : IRecurringJobScheduler
 	private readonly object _jobsDictLocker = new();
 	private readonly object _mainLoopLocker = new();
 
-	// private
+	// scheduling: a producer keeps a min-heap of jobs keyed by their next-run time, so picking
+	// the next job to run is O(log n) instead of an O(n) scan over every registered job.
+	private static readonly TimeSpan MaxWait = TimeSpan.FromHours(1);
 	private Task? _producerLoop;
 	private Task[]? _workers;
 	private int _inProgressCount;
-	private readonly SemaphoreSlim _queueSignal;
-	private readonly ConcurrentQueue<IRecurringJob> _queue;
+	private readonly PriorityQueue<IRecurringJob, DateTime> _schedule;              // producer-owned
+	private readonly ConcurrentQueue<(IRecurringJob job, DateTime when)> _incoming; // feeds the schedule
+	private readonly ManualResetEventSlim _wake;                                    // wakes the producer
+	private readonly ConcurrentQueue<IRecurringJob> _queue;                         // ready work for the pool
+	private readonly SemaphoreSlim _queueSignal;                                    // counts ready work
 	private readonly CancellationTokenSource _cancellationTokenSource;
 	private readonly Dictionary<Guid, IRecurringJob> _registeredJob;
 
@@ -30,8 +35,11 @@ public abstract class BaseRecurringScheduler : IRecurringJobScheduler
 		Config = config ?? Configuration.Default;
 
 		_registeredJob = new Dictionary<Guid, IRecurringJob>();
-		_queueSignal = new SemaphoreSlim(0);
+		_schedule = new PriorityQueue<IRecurringJob, DateTime>();
+		_incoming = new ConcurrentQueue<(IRecurringJob, DateTime)>();
+		_wake = new ManualResetEventSlim(false);
 		_queue = new ConcurrentQueue<IRecurringJob>();
+		_queueSignal = new SemaphoreSlim(0);
 		_cancellationTokenSource = new CancellationTokenSource();
 	}
 
@@ -42,10 +50,14 @@ public abstract class BaseRecurringScheduler : IRecurringJobScheduler
 	/// <returns>true - if job is registered, otherwise false</returns>
 	protected bool Register(IRecurringJob job)
 	{
+		bool added;
 		lock (_jobsDictLocker)
 		{
-			return RegisterUnsafe(job);
+			added = RegisterUnsafe(job);
 		}
+
+		if (added) ScheduleAt(job, DateTime.Now); // a fresh job is eligible immediately
+		return added;
 	}
 
 	/// <summary>
@@ -56,6 +68,7 @@ public abstract class BaseRecurringScheduler : IRecurringJobScheduler
 	protected int Register(IEnumerable<IRecurringJob> jobs)
 	{
 		int success = 0;
+		var added = new List<IRecurringJob>();
 		lock (_jobsDictLocker)
 		{
 			foreach (IRecurringJob job in jobs)
@@ -63,8 +76,15 @@ public abstract class BaseRecurringScheduler : IRecurringJobScheduler
 				if (RegisterUnsafe(job))
 				{
 					success++;
+					added.Add(job);
 				}
 			}
+		}
+
+		var now = DateTime.Now;
+		foreach (var job in added)
+		{
+			ScheduleAt(job, now);
 		}
 
 		return success;
@@ -80,7 +100,7 @@ public abstract class BaseRecurringScheduler : IRecurringJobScheduler
 		{
 			if(_producerLoop != null) return;
 
-			// Consumers: a fixed pool of workers drains the queue (bounds parallelism).
+			// Consumers: a fixed pool of workers drains the ready queue (bounds parallelism).
 			int workerCount = Config.MaxParallelJobExecute;
 			var workers = new Task[workerCount];
 			for (int i = 0; i < workerCount; i++)
@@ -89,7 +109,7 @@ public abstract class BaseRecurringScheduler : IRecurringJobScheduler
 			}
 			_workers = workers;
 
-			// Producer: scans registered jobs and feeds ready ones to the queue.
+			// Producer: pushes jobs to the ready queue when their next-run time arrives.
 			_producerLoop = Task.Factory.StartNew(ScheduleLoop, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
 		}
 	}
@@ -98,54 +118,97 @@ public abstract class BaseRecurringScheduler : IRecurringJobScheduler
 
 	#region Private
 
+	/// <summary>Put a job into the schedule and wake the producer.</summary>
+	private void ScheduleAt(IRecurringJob job, DateTime when)
+	{
+		_incoming.Enqueue((job, when));
+		_wake.Set();
+	}
+
 	/// <summary>
-	/// Producer loop. Runs on a dedicated long-running thread: scans for ready jobs and
-	/// enqueues them, backing off by <see cref="Configuration.SleepAfterCheck"/> when there
-	/// is nothing to schedule.
+	/// When the job becomes eligible again after a run. <c>null</c> means "never" (a one-shot job,
+	/// <see cref="TimeSpan.MaxValue"/>). Short sleeps are floored to <see cref="Configuration.SleepAfterCheck"/>
+	/// to keep the previous polling granularity (so a near-zero sleep can't hot-loop).
+	/// </summary>
+	private DateTime? NextRunTime(IRecurringJob job)
+	{
+		TimeSpan sleep = job.SleepDuration;
+		if (sleep == TimeSpan.MaxValue) return null;
+		if (sleep < Config.SleepAfterCheck) sleep = Config.SleepAfterCheck;
+		return DateTime.Now + sleep;
+	}
+
+	/// <summary>
+	/// Producer loop. Runs on a dedicated long-running thread: keeps the schedule heap fed from
+	/// <see cref="_incoming"/>, dispatches jobs whose time has come, and sleeps until the next one
+	/// is due (woken early when new work arrives).
 	/// </summary>
 	private void ScheduleLoop()
 	{
 		var token = _cancellationTokenSource.Token;
-		while (!token.IsCancellationRequested)
+		try
 		{
-			if (!TryScheduleJobs())
+			while (!token.IsCancellationRequested)
 			{
-				// this is executed on a dedicated thread
-				Thread.Sleep(this.Config.SleepAfterCheck);
+				// Reset BEFORE draining so a Set racing with our drain can't be lost.
+				_wake.Reset();
+				DrainIncoming();
+
+				var now = DateTime.Now;
+				while (_schedule.TryPeek(out _, out DateTime when) && when <= now)
+				{
+					DispatchIfReady(_schedule.Dequeue(), now);
+				}
+
+				int waitMs;
+				if (_schedule.TryPeek(out _, out DateTime next))
+				{
+					TimeSpan delay = next - DateTime.Now;
+					if (delay <= TimeSpan.Zero) continue; // became due while dispatching
+					waitMs = (int)Math.Min(delay.TotalMilliseconds, MaxWait.TotalMilliseconds);
+				}
+				else
+				{
+					waitMs = Timeout.Infinite; // nothing scheduled - park until new work arrives
+				}
+
+				_wake.Wait(waitMs, token);
 			}
 		}
-		// ReSharper disable once FunctionNeverReturns
+		catch (OperationCanceledException)
+		{
+			// scheduler is shutting down
+		}
 	}
 
-	/// <returns>Time: O(n) - BAD</returns>
-	private bool TryScheduleJobs()
+	private void DrainIncoming()
 	{
-		IRecurringJob[] readyJobs;
-		lock (_jobsDictLocker)
+		while (_incoming.TryDequeue(out var item))
 		{
-			readyJobs = _registeredJob
-				.Where(x => x.Value.State == State.Ready)
-				.Select(x => x.Value)
-				.OrderBy(x => x.LastExecute)
-				.ToArray();
+			_schedule.Enqueue(item.job, item.when);
 		}
+	}
 
-		if (readyJobs.Length == 0) return false;
-
-		foreach (var job in readyJobs)
+	/// <summary>Push a due job to the ready queue, or re-schedule it if it is not Ready yet.</summary>
+	private void DispatchIfReady(IRecurringJob job, DateTime now)
+	{
+		if (job.State == State.Ready)
 		{
 			job.ResetState();
 			_queue.Enqueue(job);
 			_queueSignal.Release();
 		}
-
-		return true;
+		else
+		{
+			// the estimate was early; look again after a short delay
+			_schedule.Enqueue(job, now + Config.SleepAfterCheck);
+		}
 	}
 
 	/// <summary>
-	/// Consumer loop. Each worker waits for a queued job, executes it and raises the result
-	/// event. There are <see cref="Configuration.MaxParallelJobExecute"/> workers, so the
-	/// parallelism is bounded without a per-job Task dispatch.
+	/// Consumer loop. Each worker waits for a queued job, executes it, raises the result event and
+	/// re-schedules the job for its next run. There are <see cref="Configuration.MaxParallelJobExecute"/>
+	/// workers, so the parallelism is bounded without a per-job Task dispatch.
 	/// </summary>
 	private async Task WorkerLoop()
 	{
@@ -171,6 +234,8 @@ public abstract class BaseRecurringScheduler : IRecurringJobScheduler
 				finally
 				{
 					Interlocked.Decrement(ref _inProgressCount);
+					DateTime? next = NextRunTime(job);
+					if (next.HasValue) ScheduleAt(job, next.Value);
 				}
 			}
 		}
@@ -190,9 +255,11 @@ public abstract class BaseRecurringScheduler : IRecurringJobScheduler
 	public void Dispose()
 	{
 		_cancellationTokenSource.Cancel();
+		_wake.Set();
 		_cancellationTokenSource.Dispose();
 		_producerLoop?.Dispose();
 		_queueSignal.Dispose();
+		_wake.Dispose();
 		_workers = null;
 	}
 }

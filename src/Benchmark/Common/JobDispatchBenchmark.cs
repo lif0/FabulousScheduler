@@ -209,8 +209,8 @@ public sealed class BenchRecurringJob : BaseRecurringJob
 {
     private readonly Task<JobResult<JobOk, JobFail>> _completed;
 
-    public BenchRecurringJob(bool isAsyncAction)
-        : base(name: "bench", category: "bench", sleepDuration: TimeSpan.Zero, isAsyncAction: isAsyncAction)
+    public BenchRecurringJob(bool isAsyncAction, TimeSpan? sleepDuration = null)
+        : base(name: "bench", category: "bench", sleepDuration: sleepDuration ?? TimeSpan.Zero, isAsyncAction: isAsyncAction)
     {
         _completed = Task.FromResult<JobResult<JobOk, JobFail>>(new JobOk(ID));
     }

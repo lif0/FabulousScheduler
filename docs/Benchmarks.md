@@ -12,6 +12,9 @@ The benchmark project lives in [`src/Benchmark/Common`](../src/Benchmark/Common)
 - [Job dispatch](#dispatch)
   - [Results](#dispatch-results)
   - [Takeaways](#dispatch-takeaways)
+- [Picking the next job](#next-job)
+  - [Results](#next-job-results)
+  - [Takeaways](#next-job-takeaways)
 - [Scheduler throughput](#throughput) (future)
 
 ---
@@ -119,6 +122,45 @@ BenchmarkDotNet v0.13.12, Ubuntu 24.04.4 LTS (Noble Numbat)
 - **`Task` → `ValueTask` would not move the needle**: `ExecuteAsync`'s own task is only ~72 B, and on
   the async path it suspends (a `ValueTask` still allocates the state-machine box). The per-job cost
   lived in the dispatch, which is now gone.
+
+---
+
+## Picking the next job <a id="next-job" />
+
+How the recurring producer answers "which job runs next?" among N registered jobs
+([`SchedulerScanBenchmark.cs`](../src/Benchmark/Common/SchedulerScanBenchmark.cs)).
+Up to **v5.0.1** it scanned every registered job each poll
+(`Where(State == Ready).OrderBy(LastExecute)`) — O(n). In **v5.1.0** the producer keeps a
+min-heap keyed by next-run time, so the next job is the heap root — O(log n) to pop and re-insert.
+Both rows run over N sleeping jobs (the common idle case), so `Scan` finds nothing yet still pays O(n).
+
+### Results <a id="next-job-results" />
+
+```
+BenchmarkDotNet v0.13.12, Ubuntu 24.04.4 LTS (Noble Numbat)
+.NET SDK 8.0.128
+  [Host]   : .NET 8.0.28 (8.0.2826.26413), Arm64 RyuJIT AdvSIMD
+  .NET 8.0 : .NET 8.0.28 (8.0.2826.26413), Arm64 RyuJIT AdvSIMD
+```
+
+| Method    |     N | Mean          | Allocated |
+|-----------|------:|--------------:|----------:|
+| Scan      |  1000 |    69,193 ns  |     256 B |
+| Heap_Next |  1000 |        41 ns  |       0 B |
+| Scan      |  5000 |   343,500 ns  |     256 B |
+| Heap_Next |  5000 |        47 ns  |       0 B |
+| Scan      | 50000 | 3,653,915 ns  |     259 B |
+| Heap_Next | 50000 |        62 ns  |       0 B |
+
+> Numbers are machine-dependent (here: Arm64, .NET 8). Treat them as relative, not absolute.
+
+### Takeaways <a id="next-job-takeaways" />
+
+- **`Scan` is O(n)**: ~5× from 1k→5k and ~10× from 5k→50k. At 50k jobs one scheduling decision is
+  **~3.65 ms**, and the old producer paid it every `SleepAfterCheck` even when nothing was ready.
+- **`Heap_Next` is O(log n)** and allocation-free: ~41 → 62 ns across a 50× range of N.
+- The new producer also **sleeps until the next job is due** instead of polling, so an idle scheduler
+  with many jobs no longer burns CPU re-scanning.
 
 ---
 
