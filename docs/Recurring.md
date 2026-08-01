@@ -1,7 +1,7 @@
 # Recurring Scheduler
 
-Recurring jobs run again and again. After a **successful** run a job sleeps for its
-`SleepDuration` and then becomes eligible to run again.
+Recurring jobs run again and again. After a successful run a job sleeps for its `SleepDuration`,
+then it's eligible to run again.
 
 ### 📖 Contents
 
@@ -12,30 +12,29 @@ Recurring jobs run again and again. After a **successful** run a job sleeps for 
     - [BaseRecurringScheduler](#baserecurringshceduler)
     - [Example](#example)
 - [Benchmarks](#benchmarks)
-    - [Performance](#performance)[QueueScheduler.md](QueueScheduler.md)
 
 ---
 
 ## Default Job Manager <a id="default" />
 
-`RecurringJobManager` (in `FabulousScheduler.Recurring`) is a static, process-wide
-facade. The required call order is:
+`RecurringJobManager` (in `FabulousScheduler.Recurring`) is a static, process-wide facade. Call it
+in this order:
 
 ```
-1. SetConfig(config)   // OPTIONAL — only before RunScheduler
+1. SetConfig(config)   // optional, only before RunScheduler
 2. RunScheduler()      // start the background loop
 3. JobResultEvent +=   // subscribe to results
-4. Register(...)       // add jobs (only AFTER RunScheduler)
+4. Register(...)       // add jobs, only after RunScheduler
 ```
 
-> ⚠️ The order matters and is enforced:
-> - calling `Register(...)` before `RunScheduler()` throws `SchedulerNotRunnableException`;
-> - calling `SetConfig(...)` after `RunScheduler()` throws `SetConfigAfterRunSchedulingException`.
+The order is enforced. `Register(...)` before `RunScheduler()` throws
+`SchedulerNotRunnableException`, and `SetConfig(...)` after `RunScheduler()` throws
+`SetConfigAfterRunSchedulingException`.
 
 ### Register overloads
 
-`Register` returns the new job's `Guid`. Both synchronous (`Action`) and asynchronous
-(`Func<Task>`) delegates are supported, with optional `name` and `category`:
+`Register` returns the new job's `Guid`. It takes either a synchronous (`Action`) or an
+asynchronous (`Func<Task>`) delegate, with optional `name` and `category`:
 
 ```csharp
 Guid Register(Action     action,                                 TimeSpan sleepDuration);
@@ -46,7 +45,7 @@ Guid Register(Func<Task> action, string name,                    TimeSpan sleepD
 Guid Register(Func<Task> action, string name, string category,   TimeSpan sleepDuration);
 ```
 
-Defaults when omitted: `name = "anonimouse"`, `category = "internal"`.
+Leave `name`/`category` out and you get `name = "anonymous"`, `category = "internal"`.
 
 ### The result callback
 
@@ -61,52 +60,52 @@ RecurringJobManager.JobResultEvent +=
     };
 ```
 
-The delegate uses `ref` parameters to avoid copying when the result is forwarded.
+The parameters are `ref` so the result isn't copied when it's handed to you. Don't throw from this
+handler. If you do, the scheduler swallows it (so one bad handler can't take a worker down), and
+you'll never see the exception.
 
 ### State machine (`JobStateEnum`)
 
+A job moves through these states:
+
 ```
-Ready ──scheduler picks it──► Waiting ──dequeued──► Running
-  ▲                                                    │
-  │                                                    │ run finished
-  │   SleepDuration elapsed (measured from the         ▼
-  └────────── last SUCCESS) ─────────────────────── Sleeping
+Ready ──scheduler picks it──► Waiting ──worker takes it──► Running
+  ▲                                                          │
+  │                                                          │ run finished
+  └────────────── sleep window elapsed ──────────────── Sleeping
 
   Any state ──Dispose()──► Disposed
 ```
 
-How `Sleeping → Ready` is decided (see `BaseRecurringJob.UpdateState`):
+`SleepDuration` decides the gap between runs:
 
-| `SleepDuration` | Behaviour after a run |
-|-----------------|-----------------------|
-| `TimeSpan.Zero` **or** `TimeSpan.MinValue` | Treated as zero — the job becomes `Ready` again immediately. |
-| `TimeSpan.MaxValue` | The job never leaves `Sleeping` — effectively a run-once job. |
-| any other value | The job becomes `Ready` once `now > LastSuccessExecute + SleepDuration`. |
+| `SleepDuration` | What happens after a run |
+|-----------------|--------------------------|
+| `TimeSpan.Zero` or `TimeSpan.MinValue` | Counted as zero. The job runs again as soon as the next slot is free (the gap is floored to `SleepAfterCheck`, so it can't spin). |
+| `TimeSpan.MaxValue` | The job runs once and is then dropped. A one-shot job. |
+| anything else | The job runs again after that much time. |
 
-> **Important behavioural detail.** `SleepDuration` is measured from the **last
-> successful** execution, not from the last execution. A run that **fails** does not
-> start a fresh sleep window, so a job that keeps failing is rescheduled again
-> immediately and will busy-run until it succeeds. Build a delay / circuit breaker into
-> your delegate if that is not what you want.
+The gap is the same whether a run succeeds or fails: a job that keeps failing retries on its normal
+cadence, it does not busy-loop. If you want a real backoff (grow the delay on repeated failures),
+build it into your delegate.
 
 ### Fail reasons (`JobFailEnum`)
 
 | Value | When |
 |-------|------|
-| `IncorrectState` | `ExecuteAsync` was called while the job was not `Ready`/`Waiting`. |
-| `InternalException` | The user delegate threw — the exception is in `JobFail.Exception`. |
-| `FailedExecute` | The job explicitly returned a `JobFail`. |
-| `Disposed` | The job was disposed before execution. |
+| `IncorrectState` | `ExecuteAsync` ran while the job wasn't `Ready`/`Waiting`. |
+| `InternalException` | Your delegate threw. The exception is on `JobFail.Exception`. |
+| `FailedExecute` | The job returned a `JobFail` on purpose. |
+| `Disposed` | The job was disposed before it could run. |
 
 ---
 
 ## Make my own job manager <a id="myself" />
 
-`RecurringJobManager` is just a thin static wrapper around two public base classes. When
-you need more control — custom job state, your own registration store, dependency
-injection instead of a static singleton — subclass them directly.
+`RecurringJobManager` is a thin static wrapper over two public base classes. When you want more
+(custom job state, your own registry, DI instead of a static singleton), subclass them.
 
-**1. A custom job** — derive from `BaseRecurringJob` and implement `ActionJob()`:
+**1. A custom job.** Derive from `BaseRecurringJob` and implement `ActionJob()`:
 
 ```csharp
 using FabulousScheduler.Recurring.Abstraction;
@@ -130,9 +129,9 @@ public sealed class MyRecurringJob : BaseRecurringJob
 }
 ```
 
-**2. A custom scheduler** — derive from `BaseRecurringScheduler` and expose registration.
-The base class gives you a `protected bool Register(IRecurringJob)` (and an
-`IEnumerable<IRecurringJob>` overload), the background loop, and the `JobResultEvent`:
+**2. A custom scheduler.** Derive from `BaseRecurringScheduler` and expose registration. The base
+gives you `protected bool Register(IRecurringJob)` (and an `IEnumerable<IRecurringJob>` overload),
+a matching `Unregister(Guid)`, the background engine, and the `JobResultEvent`:
 
 ```csharp
 using FabulousScheduler.Recurring.Abstraction;
@@ -143,14 +142,16 @@ public sealed class MyRecurringScheduler : BaseRecurringScheduler
 
     public Guid Add(MyRecurringJob job)
     {
-        base.Register(job);   // adds the job to the internal registry
+        base.Register(job);   // adds the job to the registry
         return job.ID;
     }
+
+    public bool Remove(Guid id) => base.Unregister(id); // stops scheduling it
 }
 ```
 
-Usage mirrors the default manager: `new MyRecurringScheduler(config)` → subscribe to
-`JobResultEvent` → `RunScheduler()` → `Add(job)`.
+It works like the default manager: `new MyRecurringScheduler(config)`, subscribe to
+`JobResultEvent`, `RunScheduler()`, then `Add(job)`.
 
 ---
 
@@ -158,20 +159,20 @@ Usage mirrors the default manager: `new MyRecurringScheduler(config)` → subscr
 
 ### BaseRecurringJob <a id="baserecurringjob" />
 
-`public abstract class BaseRecurringJob : IRecurringJob`. A thread-safe state machine
-that delegates the actual work to the abstract `ActionJob()`.
+`public abstract class BaseRecurringJob : IRecurringJob`. A thread-safe state machine that hands the
+actual work to the abstract `ActionJob()`.
 
 | Member | Description |
 |--------|-------------|
 | `ID`, `Name`, `Category` | Identity (see [Core.md](Core.md)). |
-| `SleepDuration` | Sleep window after a successful run. `Zero`/`MinValue` are normalised to `Zero` in the constructor. |
-| `State` | Current `JobStateEnum`. Reading it re-evaluates the `Sleeping → Ready` transition. |
-| `TotalRun` | `ulong` — number of times the job started. |
-| `TotalFail` | `ulong` — number of failed runs. |
+| `SleepDuration` | The sleep window after a successful run. `Zero`/`MinValue` become `Zero` in the constructor. |
+| `State` | The current `JobStateEnum`. Reading it can move a finished job from `Sleeping` to `Ready` once its sleep is up. |
+| `TotalRun` | `ulong`, how many times the job started. |
+| `TotalFail` | `ulong`, how many runs failed. |
 | `LastExecute` / `LastSuccessExecute` | Timestamps (nullable). |
-| `Task<JobResult<JobOk,JobFail>> ExecuteAsync()` | Runs the job once and updates state/counters. |
-| `protected abstract Task<JobResult<JobOk,JobFail>> ActionJob()` | Your work. Return `JobOk`/`JobFail`. |
-| `Dispose()` / `DisposeAsync()` | Marks the job disposed. `DisposeAsync` delegates to `Dispose`. |
+| `Task<JobResult<JobOk,JobFail>> ExecuteAsync()` | Runs the job once and updates the state and counters. |
+| `protected abstract Task<JobResult<JobOk,JobFail>> ActionJob()` | Your work. Return `JobOk` or `JobFail`. |
+| `Dispose()` / `DisposeAsync()` | Marks the job disposed. `DisposeAsync` just calls `Dispose`. |
 
 Constructor:
 
@@ -181,22 +182,24 @@ protected BaseRecurringJob(string name, string category, TimeSpan sleepDuration,
 
 ### BaseRecurringScheduler <a id="baserecurringshceduler" />
 
-`public abstract class BaseRecurringScheduler : IRecurringJobScheduler`. Runs one
-`LongRunning` background loop.
+`public abstract class BaseRecurringScheduler : IRecurringJobScheduler`.
 
 | Member | Description |
 |--------|-------------|
-| `event JobResultEventHandler JobResultEvent` | Fired after each job run with `(ref IRecurringJob, ref JobResult<JobOk,JobFail>)`. |
-| `void RunScheduler()` | Starts the loop. Idempotent — a second call is a no-op. |
-| `int CurrentRunnableJobCount()` | Number of jobs currently in flight. |
-| `protected bool Register(IRecurringJob job)` | Registers one job; returns `false` if the `ID` is already present. |
-| `protected int Register(IEnumerable<IRecurringJob> jobs)` | Registers many; returns the count actually added. |
-| `void Dispose()` | Requests cancellation and releases resources. |
+| `event JobResultEventHandler JobResultEvent` | Fires after each run with `(ref IRecurringJob, ref JobResult<JobOk,JobFail>)`. |
+| `void RunScheduler()` | Starts the engine. A second call does nothing. |
+| `int CurrentRunnableJobCount()` | How many jobs are running right now. |
+| `protected bool Register(IRecurringJob job)` | Adds one job. Returns `false` if its `ID` is already there. |
+| `protected int Register(IEnumerable<IRecurringJob> jobs)` | Adds many. Returns how many were added. |
+| `protected bool Unregister(Guid id)` | Stops scheduling a job. Any run already in flight finishes first. |
+| `void Dispose()` | Cancels the engine and waits for it to stop. |
 
-How the loop works: it scans the registry for jobs in `Ready` state (ordered by
-`LastExecute`), moves them to `Waiting`, and enqueues them. A `SemaphoreSlim` caps the
-number of concurrent runs at `Configuration.MaxParallelJobExecute`. When nothing is
-ready it sleeps for `Configuration.SleepAfterCheck` before polling again.
+How it runs: a single producer keeps the registered jobs in a min-heap ordered by their next run
+time, so finding the next one to run is cheap even with a lot of jobs. The producer sleeps until
+that next job is due (it doesn't poll), then pushes the due jobs onto a channel. A fixed pool of
+`MaxParallelJobExecute` workers reads the channel and runs them, which is what caps the parallelism.
+When a job finishes, it's scheduled for its next run, or dropped from the registry if it was a
+one-shot (`SleepDuration == MaxValue`) or you unregistered it.
 
 ### Configuration
 
@@ -204,8 +207,8 @@ ready it sleeps for `Configuration.SleepAfterCheck` before polling again.
 
 | Property | Default | Meaning |
 |----------|---------|---------|
-| `MaxParallelJobExecute` | `Environment.ProcessorCount * 10` | Max jobs running at once. |
-| `SleepAfterCheck` | `200 ms` | Idle poll interval when no job is ready. `Zero`/`MinValue` are normalised to `10 ms`. |
+| `MaxParallelJobExecute` | `Environment.ProcessorCount * 10` | Number of workers, so the most jobs running at once. |
+| `SleepAfterCheck` | `200 ms` | The smallest gap between a job's runs (the floor for short sleep durations). `Zero`/`MinValue` become `10 ms`. |
 
 ```csharp
 var config = new Configuration(maxParallelJobExecute: 5, sleepAfterCheck: TimeSpan.FromMilliseconds(100));
@@ -227,7 +230,7 @@ var config = new Configuration(
 );
 RecurringJobManager.SetConfig(config);
 
-// Start the scheduler BEFORE registering jobs
+// Start the scheduler before registering jobs
 RecurringJobManager.RunScheduler();
 
 // Subscribe to results
@@ -240,7 +243,7 @@ RecurringJobManager.JobResultEvent += (ref IRecurringJob job, ref JobResult<JobO
         Console.WriteLine("[{0:hh:mm:ss}] {1} {2} FAIL", now, job.Name, res.JobID);
 };
 
-// Register a job that repeats every second after each success
+// A job that repeats one second after each success
 RecurringJobManager.Register(
     action: () =>
     {
@@ -259,8 +262,5 @@ Thread.Sleep(-1); // keep the process alive
 
 ## Benchmarks <a id="benchmarks" />
 
-_Planned._
-
-### Performance <a id="performance" />
-
-_Planned._
+The numbers for the recurring scheduler (how it picks the next job, and end-to-end throughput) are
+on the [Benchmarks](Benchmarks.md) page.

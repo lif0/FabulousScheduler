@@ -7,7 +7,7 @@ namespace FabulousScheduler.Queue.Internal;
 
 internal sealed class QueueJob : BaseQueueJob
 {
-    private const string DefaultJobName = "anonimouse";
+    private const string DefaultJobName = "anonymous";
     private const string DefaultJobCategory = "internal";
     
     private readonly Func<Task>? _actionAsync;

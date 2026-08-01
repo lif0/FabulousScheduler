@@ -95,7 +95,7 @@ Ready ──RunScheduler──► Waiting ──dequeue──► Running
 | Class | Role |
 |-------|------|
 | `BaseRecurringJob` | Implements `IRecurringJob`. Thread-safe state machine. Tracks `TotalRun`, `TotalFail`, timestamps. Delegates work to abstract `ActionJob()`. |
-| `BaseRecurringScheduler` | Main loop on a dedicated `LongRunning` task. Uses `SemaphoreSlim` for parallelism cap. `ConcurrentDictionary` for in-progress jobs. `ConcurrentQueue` for ready-to-run queue. Polling loop with `Thread.Sleep(SleepAfterCheck)` when no jobs are ready. |
+| `BaseRecurringScheduler` | A producer keeps a min-heap of jobs keyed by next-run time (O(log n) to pick the next) and pushes due jobs to a `Channel`. A fixed pool of `MaxParallelJobExecute` workers drains the channel. The producer sleeps until the next job is due instead of polling. |
 
 #### Internal implementations (inside `FabulousScheduler` meta-package)
 
@@ -118,8 +118,8 @@ Guid id = RecurringJobManager.Register(action, name, category, sleepDuration);
 
 | Property | Default | Meaning |
 |----------|---------|---------|
-| `MaxParallelJobExecute` | `ProcessorCount * 10` | SemaphoreSlim initial count |
-| `SleepAfterCheck` | `200 ms` | Polling interval when no jobs are ready |
+| `MaxParallelJobExecute` | `ProcessorCount * 10` | Number of worker tasks (parallelism cap) |
+| `SleepAfterCheck` | `200 ms` | Minimum gap between a job's runs (floor for short sleep durations) / retry delay |
 
 ---
 
@@ -133,7 +133,7 @@ Jobs run once (or N times via Attempts) in the order they are enqueued.
 |-----------|---------|-------------|
 | `IQueueJob` | `IJob` | `TotalRun`, `Attempts`, `State`, `ExecuteAsync()`, `ResetState()` |
 | `IQueueJobScheduler` | `IJobScheduler` | `event JobResultEventHandler JobResultEvent` |
-| `IQueue` | — | `Count`, `Enqueue(job)`, `Enqueue(jobs)`, `NextAsync()` (async blocking dequeue) |
+| `IQueue` | — | `Count`, `Enqueue(job)`, `NextAsync(CancellationToken)` → `ValueTask` (waits for a job). `Enqueue(IEnumerable)` lives on `InMemoryQueue`, not on the interface |
 
 #### State machine (`QueueJobStateEnum`)
 
@@ -156,14 +156,14 @@ After `Completed`, a job can be re-queued by calling `ResetState()` + `IQueue.En
 
 | Class | Storage | Notes |
 |-------|---------|-------|
-| `InMemoryQueue` | `Queue<IQueueJob>` + `Queue<TaskCompletionSource<IQueueJob>>` | Lock-based. `NextAsync` returns a TCS task when queue is empty; completing when a job is enqueued. Optional capacity hint. |
+| `InMemoryQueue` | `Channel<IQueueJob>` (unbounded) | `Count` = buffered jobs. `NextAsync` returns a `ValueTask` (no allocation when a job is ready) and observes cancellation. Optional capacity hint (advisory). |
 
 #### Abstraction layer
 
 | Class | Role |
 |-------|------|
 | `BaseQueueJob` | Implements `IQueueJob`. Thread-safe state. Supports optional `Attempts` counter (decremented on each run). Abstract `ActionJob()`. |
-| `BaseQueueScheduler` | `LongRunning` main loop. Calls `Queue.NextAsync()` (blocking). Uses `SemaphoreSlim`. `ConcurrentDictionary` for in-progress tasks. |
+| `BaseQueueScheduler` | A fixed pool of `MaxParallelJobExecute` workers each pulls one job from `Queue.NextAsync(token)` and runs it. No per-job Task dispatch. |
 
 #### Retry pattern (Attempts)
 

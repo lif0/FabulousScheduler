@@ -8,12 +8,13 @@ namespace FabulousScheduler.Queue.Result;
 ///  <inheritdoc cref="IJobFail"/>
 /// </summary>
 [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
-public class JobFail : Exception, IJobFail  
+public class JobFail : IJobFail
 {
-	public JobFail(QueueJobFailEnum reason, Guid jobID, string message, Exception? exception = null): base(message)
+	public JobFail(QueueJobFailEnum reason, Guid jobID, string message, Exception? exception = null)
 	{
 		ID = jobID;
 		Reason = reason;
+		Message = message;
 		Exception = exception;
 	}
 
@@ -21,6 +22,11 @@ public class JobFail : Exception, IJobFail
 	/// <inheritdoc/>
 	/// </summary>
 	public Guid ID { get; }
+
+	/// <summary>
+	/// Message
+	/// </summary>
+	public string Message { get; }
 
 	/// <summary>
 	/// <inheritdoc cref="QueueJobFailEnum"/>

@@ -1,6 +1,4 @@
 using FabulousScheduler.Queue.Interfaces;
-using System.Runtime.CompilerServices;
-using System.Collections.Concurrent;
 
 namespace FabulousScheduler.Queue.Abstraction;
 
@@ -10,9 +8,7 @@ public class BaseQueueScheduler : IQueueJobScheduler
     private readonly object _mainLoopLocker = new();
 
     // private
-    private Task? _mainLoop;
-    private readonly SemaphoreSlim _jobExecutorLimiter;
-    private readonly ConcurrentDictionary<Guid, (IQueueJob, Task)> _inProgress;
+    private Task[]? _workers;
     private readonly CancellationTokenSource _cancellationTokenSource;
 
     // protected
@@ -27,8 +23,6 @@ public class BaseQueueScheduler : IQueueJobScheduler
         Configuration = config ?? Configuration.Default;
         Queue = queue;
 
-        _jobExecutorLimiter = new SemaphoreSlim(Configuration.MaxParallelJobExecute, Configuration.MaxParallelJobExecute);
-        _inProgress = new ConcurrentDictionary<Guid, (IQueueJob, Task)>(Environment.ProcessorCount, this.Configuration.MaxParallelJobExecute);
         _cancellationTokenSource = new CancellationTokenSource();
     }
 
@@ -38,9 +32,16 @@ public class BaseQueueScheduler : IQueueJobScheduler
     {
         lock (_mainLoopLocker)
         {
-            if(_mainLoop != null) return;
+            if (_workers != null) return;
 
-            _mainLoop = Task.Factory.StartNew(ExecutableLoop, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+            int workerCount = Configuration.MaxParallelJobExecute;
+            var workers = new Task[workerCount];
+            for (int i = 0; i < workerCount; i++)
+            {
+                workers[i] = Task.Run(WorkerLoop);
+            }
+
+            _workers = workers;
         }
     }
 
@@ -48,44 +49,45 @@ public class BaseQueueScheduler : IQueueJobScheduler
 
     #region Private
 
-    private async Task ExecutableLoop()
+    /// <summary>
+    /// A fixed pool of <see cref="Configuration.MaxParallelJobExecute"/> workers consumes the
+    /// queue. Each worker pulls one job at a time and awaits it, so the parallelism is bounded
+    /// by the worker count instead of a semaphore, and there is no per-job Task dispatch.
+    /// </summary>
+    private async Task WorkerLoop()
     {
-        while (!_cancellationTokenSource.Token.IsCancellationRequested)
+        var token = _cancellationTokenSource.Token;
+        try
         {
-            await _jobExecutorLimiter.WaitAsync(CancellationToken.None);
-            var newJob = await Queue.NextAsync();
-            CreateTask(ref newJob);
+            while (!token.IsCancellationRequested)
+            {
+                IQueueJob job = await Queue.NextAsync(token).ConfigureAwait(false);
+                var res = await job.ExecuteAsync().ConfigureAwait(false);
+                try
+                {
+                    JobResultEvent?.Invoke(ref job, ref res);
+                }
+                catch
+                {
+                    // a user result handler threw — swallow it so it can't kill the worker
+                }
+            }
         }
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void CreateTask(ref IQueueJob job)
-    {
-        var task = Task.Factory.StartNew(async obj =>
+        catch (OperationCanceledException)
         {
-            var @job = obj as IQueueJob;
-            if (@job is null)
-            {
-                ArgumentNullException.ThrowIfNull(@job, nameof(@job));
-            }
-
-            var res = await @job.ExecuteAsync();
-            if (_inProgress.TryRemove(@job.ID, out var tup))
-            {
-                JobResultEvent?.Invoke(ref tup.Item1, ref res);
-            }
-            _jobExecutorLimiter.Release(1);
-        }, job, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default);
-
-        _inProgress.TryAdd(job.ID, (job, task));
+            // scheduler is shutting down
+        }
     }
 
     public void Dispose()
     {
+        _cancellationTokenSource.Cancel();
+
+        // let the workers observe the cancellation and finish before freeing anything
+        try { if (_workers is { } workers) Task.WaitAll(workers); } catch { /* ignore shutdown errors */ }
+
         _cancellationTokenSource.Dispose();
-        _mainLoop?.Dispose();
-        _jobExecutorLimiter.Dispose();
-        _inProgress.Clear();
+        _workers = null;
     }
 
     #endregion

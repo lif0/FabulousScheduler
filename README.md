@@ -1,8 +1,7 @@
 <div align="center">
 <img src="./assets/logo.png" width="70%" height="auto" > 
 <h2 align="center">✨High performance recurring & queue-based scheduler✨</h2>
-<h3 align="center">Please leave a ⭐ as motivation if you liked the lib 😄
-<br>🌪️Currently a WIP and in Active development.</h3>
+<h3 align="center">Please leave a ⭐ as motivation if you liked the lib 😄</h3>
 
 
 ![build](https://github.com/lif0/FabulousScheduler/actions/workflows/github-actions-build.yml/badge.svg?branch=main)
@@ -58,8 +57,9 @@ I have developed this library for cases where you need to launch a large count o
 - [ ] Cover PSQLQueue unit tests 
 - [x] Cover recurring scheduler unit tests
 - [x] Cover queue scheduler unit tests
-- [ ] A structure for store jobs. take: O(1) push: (?)
-- [ ] Refactot Task to ValueTask
+- [x] A structure for store jobs. take: O(1) push: O(1) (min-heap scheduler + `Channel` work queue)
+- [x] Refactor Task to ValueTask (done on `IQueue.NextAsync`; evaluated and skipped on the job hot path — not worth it, see [Benchmarks](docs/Benchmarks.md#dispatch))
+- [ ] JobResult → struct (remove ~40 B/result allocation; needs `JobOk`/`JobFail` too, mind struct footguns)
 
 ## 📚 Usage <a id="usage" />
 ### 📋 Requirements <a id="requirements" />
